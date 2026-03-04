@@ -81,9 +81,30 @@ export default function HomePage({ student, onNavigate }) {
         </p>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8,
           background: 'rgba(248,113,113,0.18)', border: '1px solid rgba(248,113,113,0.4)',
-          borderRadius: 8, padding: '7px 12px', marginBottom: 20,
+          borderRadius: 8, padding: '7px 12px',
           fontSize: 12, color: '#FCA5A5', fontWeight: 600, maxWidth: 520 }}>
-          ⚠️ Resubmissions are capped at a Pass — get it right first time.
+          ⚠️ If you miss the deadline or your work is rejected, your next submission is capped at a Pass — no exceptions.
+        </div>
+        {/* Date strip */}
+        <div style={{ display: 'flex', gap: 8, marginTop: 10, marginBottom: 20, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6,
+            background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)',
+            borderRadius: 6, padding: '5px 12px' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700,
+              color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Start</span>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: '#fff' }}>
+              05 March 2026
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6,
+            background: 'rgba(248,113,113,0.15)', border: '1px solid rgba(248,113,113,0.3)',
+            borderRadius: 6, padding: '5px 12px' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700,
+              color: '#FCA5A5', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Deadline</span>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: '#fff' }}>
+              15 April 2026 · 5:00pm
+            </span>
+          </div>
         </div>
         <div style={{ background: 'rgba(15,23,42,0.45)', borderRadius: 12,
           padding: '14px 16px 12px', border: '1px solid rgba(148,163,184,0.35)' }}>
@@ -113,9 +134,20 @@ export default function HomePage({ student, onNavigate }) {
               </div>
             ))}
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between',
-            fontFamily: 'var(--font-mono)', fontSize: 10, color: 'rgba(226,232,240,0.8)' }}>
-            <span>Pass</span><span>Merit</span><span>Distinction</span>
+          <div style={{ position: 'relative', height: 16 }}>
+            {[
+              { label: 'Pass', value: PASS_XP },
+              { label: 'Merit', value: PASS_MERIT_XP },
+              { label: 'Distinction', value: TOTAL_XP },
+            ].map(m => (
+              <span key={m.label} style={{
+                position: 'absolute',
+                left: `${Math.min(100, (m.value / TOTAL_XP) * 100)}%`,
+                transform: m.value === TOTAL_XP ? 'translateX(-100%)' : m.value === PASS_XP ? 'translateX(0%)' : 'translateX(-50%)',
+                fontFamily: 'var(--font-mono)', fontSize: 10, color: 'rgba(226,232,240,0.8)',
+                whiteSpace: 'nowrap',
+              }}>{m.label}</span>
+            ))}
           </div>
         </div>
       </motion.div>
@@ -154,48 +186,6 @@ export default function HomePage({ student, onNavigate }) {
           })}
         </motion.div>
       )}
-
-      {/* Quick nav cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
-        {QUICK_NAV.map((item, i) => (
-          <motion.div key={item.page} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 + i * 0.04 }}
-            onClick={() => onNavigate(item.page)}
-            style={{ background: 'var(--white)', border: '1.5px solid var(--border)', borderRadius: 12,
-              padding: 16, cursor: 'pointer', transition: 'box-shadow 0.15s, border-color 0.15s' }}
-            onMouseEnter={e => { e.currentTarget.style.boxShadow = 'var(--shadow-md)'; e.currentTarget.style.borderColor = 'var(--navy)' }}
-            onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'var(--border)' }}>
-            <div style={{ fontSize: 26, marginBottom: 8 }}>{item.icon}</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--navy)', marginBottom: 3 }}>{item.label}</div>
-            <div style={{ fontSize: 11, color: 'var(--slate)', lineHeight: 1.4 }}>{item.sub}</div>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Assignment explainer */}
-      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-        style={{ background: 'var(--white)', border: '1.5px solid var(--border)', borderRadius: 12, padding: '24px 28px' }}>
-        <h2 style={{ fontFamily: 'var(--font-head)', fontSize: 20, fontWeight: 900, color: 'var(--navy)', marginBottom: 10 }}>
-          What is this assignment actually asking you to do?
-        </h2>
-        <p style={{ fontSize: 14, color: 'var(--slate)', lineHeight: 1.7, marginBottom: 16 }}>
-          You work for a local chamber of commerce. A small business owner has come to you and asked you
-          to help them get started on social media. Your job is to:
-        </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {ASSIGNMENT_STEPS.map((step, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12,
-              background: 'var(--light)', borderRadius: 8, padding: '12px 14px' }}>
-              <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-                background: 'var(--navy)', color: '#fff', display: 'flex', alignItems: 'center',
-                justifyContent: 'center', fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700 }}>
-                {i + 1}
-              </div>
-              <span style={{ fontSize: 14, color: 'var(--navy)', lineHeight: 1.5 }}>{step}</span>
-            </div>
-          ))}
-        </div>
-      </motion.div>
 
       {/* Grid: next up / badges / progress */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 16 }}>
@@ -281,6 +271,50 @@ export default function HomePage({ student, onNavigate }) {
           })}
         </motion.div>
       </div>
+
+      {/* Quick nav cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
+        {QUICK_NAV.map((item, i) => (
+          <motion.div key={item.page} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 + i * 0.04 }}
+            onClick={() => onNavigate(item.page)}
+            style={{ background: 'var(--white)', border: '1.5px solid var(--border)', borderRadius: 12,
+              padding: 16, cursor: 'pointer', transition: 'box-shadow 0.15s, border-color 0.15s' }}
+            onMouseEnter={e => { e.currentTarget.style.boxShadow = 'var(--shadow-md)'; e.currentTarget.style.borderColor = 'var(--navy)' }}
+            onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'var(--border)' }}>
+            <div style={{ fontSize: 26, marginBottom: 8 }}>{item.icon}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--navy)', marginBottom: 3 }}>{item.label}</div>
+            <div style={{ fontSize: 11, color: 'var(--slate)', lineHeight: 1.4 }}>{item.sub}</div>
+          </motion.div>
+        ))}
+      </div>
+
+
+      {/* Assignment explainer */}
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+        style={{ background: 'var(--white)', border: '1.5px solid var(--border)', borderRadius: 12, padding: '24px 28px' }}>
+        <h2 style={{ fontFamily: 'var(--font-head)', fontSize: 20, fontWeight: 900, color: 'var(--navy)', marginBottom: 10 }}>
+          What is this assignment actually asking you to do?
+        </h2>
+        <p style={{ fontSize: 14, color: 'var(--slate)', lineHeight: 1.7, marginBottom: 16 }}>
+          You work for a local chamber of commerce. A small business owner has come to you and asked you
+          to help them get started on social media. Your job is to:
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {ASSIGNMENT_STEPS.map((step, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12,
+              background: 'var(--light)', borderRadius: 8, padding: '12px 14px' }}>
+              <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+                background: 'var(--navy)', color: '#fff', display: 'flex', alignItems: 'center',
+                justifyContent: 'center', fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700 }}>
+                {i + 1}
+              </div>
+              <span style={{ fontSize: 14, color: 'var(--navy)', lineHeight: 1.5 }}>{step}</span>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+
 
     </div>
   )
