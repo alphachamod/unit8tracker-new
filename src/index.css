@@ -1,0 +1,30 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500;700&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+:root {
+  --pass:#1F6B3A; --pass-light:#E8F5EC; --pass-mid:#C3E6CD;
+  --merit:#8B6200; --merit-light:#FFF8E7; --merit-mid:#F5D97A;
+  --dist:#6B4400; --dist-light:#FFF4DC; --dist-mid:#F0C060;
+  --navy:#1a2035; --navy-mid:#2E4057; --slate:#4A5568;
+  --light:#F7F8FC; --white:#FFFFFF; --border:#E2E8F0;
+  --red:#C0392B; --red-light:#FFF0EF; --gold:#F59E0B;
+  --p3:#d4edda; --p3b:#74c38a; --p4:#b8dfc6; --p4b:#4daa6a;
+  --p5:#8fcba8; --p5b:#2d8f52; --p6:#5cad7a; --p6b:#1a6e3c;
+  --p7:#2d8f52; --p7b:#0f4a1e;
+  --font-head:'Fraunces',Georgia,serif;
+  --font-body:'DM Sans',system-ui,sans-serif;
+  --font-mono:'DM Mono',monospace;
+  --radius:10px;
+  --shadow:0 2px 12px rgba(0,0,0,0.07);
+  --shadow-md:0 6px 24px rgba(0,0,0,0.11);
+}
+
+body { font-family:var(--font-body); background:var(--light); color:var(--navy); line-height:1.6; font-size:15px; }
+button { cursor:pointer; border:none; background:none; font-family:inherit; }
+a { color:inherit; text-decoration:none; }
+input, textarea { font-family:var(--font-body); outline:none; }
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background:var(--light); }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
