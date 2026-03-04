@@ -1,4 +1,4 @@
-export const DEADLINE   = new Date('2026-04-15T23:59:59');
+export const DEADLINE   = new Date('2026-04-15T17:00:00');
 export const START_DATE = new Date('2026-03-05T00:00:00');
 
 export const STUDENT_ROSTER = {
@@ -189,39 +189,43 @@ export const WEEKS_DATA = [
     ]},
   { label:'Week 2', dates:'11–17 Mar', start:'2026-03-11', end:'2026-03-17',
     items:[
-      { criteria:'P4', title:'Review Plan with Business Owner', desc:'Share your plan, collect feedback, produce Schedule V2.',
+      { criteria:'P4', title:'Review Plan with Business Owner', desc:'Share your plan, collect feedback, produce Schedule V2. Once done, set up your profiles immediately — do not wait until Week 3.',
         warn:'⚠️ MUST happen before you start posting',
         subs:['Section 3 — Plan Review','3a Evidence of review (meeting notes / email)','3b Feedback documented','3c Schedule V2 with "what changed" column'] },
+      { criteria:'P5', title:'Set Up Profiles (as soon as review is done)', desc:'Get accounts live as early as possible — every day counts toward your analytics.',
+        subs:['Section 4 — Create all social media profiles','Screenshot every profile with annotations','Consistent branding across all platforms'] },
     ]},
   { label:'Week 3', dates:'18–24 Mar', start:'2026-03-18', end:'2026-03-24',
     items:[
-      { criteria:'P5', title:'Set Up Profiles & Start Posting', desc:'Create accounts, screenshot profiles, start publishing content.',
-        subs:['Section 4 — Profiles setup','Section 5 — Content (matrix, formats, 5+ posts)','Section 6 — Community (replies, polls, hashtags)'] },
+      { criteria:'P5', title:'Post Content & Build Community', desc:'Publish your planned content and engage with your audience. The more time your posts have to gather data, the better your analytics will be.',
+        subs:['Section 5 — Content matrix, format checklist, 5+ published posts','Section 6 — Community engagement (replies, polls, hashtags, auto-messages)'] },
     ]},
   { label:'Week 4', dates:'25–31 Mar', start:'2026-03-25', end:'2026-03-31',
     items:[
-      { criteria:'P6', title:'Collect & Analyse Data', desc:'Real analytics from all platforms. No fabrication.',
+      { criteria:'P5', title:'Continue Posting', desc:'Keep publishing content throughout this week. You now have 2 weeks of data building up — do not stop posting early.',
+        subs:['Continue scheduled posts from your V2 plan','Engage with any comments or messages','Screenshot everything as you go'] },
+      { criteria:'P6', title:'Collect & Analyse Data (mid-week onwards)', desc:'Once you have 2 weeks of real data, start your analytics write-up.',
         warn:'🚨 Real figures only — even 1 like is fine. Do NOT make data up.',
-        subs:['Section 7a — Analytics data table','Section 7b — Data analysis (best post, worst post, audience match)'] },
+        subs:['Section 7a — Analytics data table (all platforms, full posting period)','Section 7b — Data analysis (best post, worst post, audience match, patterns)'] },
+    ]},
+  { label:'Week 5', dates:'01–07 Apr', start:'2026-04-01', end:'2026-04-07',
+    items:[
       { criteria:'P7', title:'SEO Assessment', desc:'How your activity helps search rankings.',
         subs:['Section 8 — SEO Assessment'] },
       { criteria:'M2', title:'Justify Planning Decisions', desc:'Not what you did — WHY it was right for this business.',
         subs:['Section 9 — Justify platforms, audience, keywords, schedule'] },
       { criteria:'M3', title:'Optimise Content', desc:'Before & after for 2+ posts. Test on multiple devices.',
         subs:['Section 10 — Optimised content with annotations'] },
-    ]},
-  { label:'Week 5', dates:'01–07 Apr', start:'2026-04-01', end:'2026-04-07',
-    items:[
       { criteria:'D2', title:'Evaluate the Whole Project', desc:'Full honest evaluation — what worked, what did not, data vs intentions.',
         subs:['Section 11 — Did plan meet requirements? What worked/failed and why? Recommendations?'] },
       { criteria:'D3', title:'Reflect on Self-Management', desc:'Evaluate your own behaviour — time, feedback, professionalism.',
         subs:['Section 12 — Time management, feedback response, professionalism, communication'] },
     ]},
-  { label:'Week 6', dates:'08–14 Apr', start:'2026-04-08', end:'2026-04-14',
+  { label:'Week 6', dates:'08–15 Apr', start:'2026-04-08', end:'2026-04-15',
     items:[
-      { criteria:'', title:'Final Polish & Checks', desc:'Remove red guidance text. Update Table of Contents. Proofread everything.',
-        warn:'📌 Do not leave this to the last day',
-        subs:['Delete all red guidance text','Right-click TOC → Update Field','Check every screenshot has a caption','Filename: YourName_StudentID_Unit8_A02.docx'] },
+      { criteria:'', title:'Final Polish & Submission', desc:'Remove red guidance text. Update Table of Contents. Proofread everything. Submit by 5pm on 15 April.',
+        warn:'📌 Deadline is 15 April at 5pm — do not leave this to the last day',
+        subs:['Delete all red guidance text','Right-click TOC → Update Field','Check every screenshot has a caption','Filename: YourName_StudentID_Unit8_A02.docx','Submit on Canvas before 5:00pm'] },
     ]},
 ];
 

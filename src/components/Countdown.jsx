@@ -19,72 +19,23 @@ export default function Countdown() {
     return () => clearInterval(t)
   }, [])
 
-  if (!timeLeft) {
-    return (
-      <div
-        style={{
-          padding: '6px 10px',
-          borderRadius: 999,
-          fontFamily: 'var(--font-mono)',
-          fontSize: 12,
-          fontWeight: 700,
-          background: 'var(--red-light)',
-          color: 'var(--red)',
-          border: '1px solid #FCA5A5',
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 6,
-        }}
-      >
-        <span style={{ width: 8, height: 8, borderRadius: '999px', background: 'var(--red)' }} />
-        The deadline for this unit has passed
-      </div>
-    )
-  }
+  if (!timeLeft) return (
+    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700,
+      color: '#FCA5A5', letterSpacing: '0.06em' }}>
+      ⚠️ DEADLINE PASSED
+    </div>
+  )
 
   const urgent = timeLeft.d < 3
-  const close = !urgent && timeLeft.d < 7
-
-  const palette = urgent
-    ? {
-        toneColor: 'var(--red)',
-        toneBg: 'var(--red-light)',
-        toneBorder: '#FCA5A5',
-      }
-    : close
-    ? {
-        toneColor: '#B45309',
-        toneBg: '#FEF3C7',
-        toneBorder: '#FBBF24',
-      }
-    : {
-        toneColor: '#047857',
-        toneBg: '#ECFDF5',
-        toneBorder: '#6EE7B7',
-      }
 
   return (
-    <div
-      aria-label="Time left until deadline"
-      aria-live="polite"
-      style={{ display: 'flex', flexDirection: 'column', gap: 4 }}
-    >
-      <span
-        style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: 11,
-          textTransform: 'uppercase',
-          letterSpacing: 0.08,
-          color: palette.toneColor,
-        }}
-      >
-        {urgent
-          ? 'Almost there – please submit soon'
-          : close
-          ? 'About one week left'
-          : 'Time left to submit'}
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700,
+        textTransform: 'uppercase', letterSpacing: '0.1em',
+        color: urgent ? '#FCA5A5' : '#FCD34D' }}>
+        Time left to submit
       </span>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: 6 }}>
         {[
           { v: timeLeft.d, label: 'Days' },
           { v: timeLeft.h, label: 'Hours' },
@@ -92,30 +43,18 @@ export default function Countdown() {
           { v: timeLeft.s, label: 'Seconds' },
         ].map(({ v, label }) => (
           <div key={label} style={{ textAlign: 'center' }}>
-            <div
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 20,
-                fontWeight: 700,
-                color: palette.toneColor,
-                background: palette.toneBg,
-                border: `1.5px solid ${palette.toneBorder}`,
-                borderRadius: 6,
-                padding: '4px 8px',
-                minWidth: 36,
-                display: 'block',
-              }}
-            >
+            <div style={{
+              fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 700,
+              color: urgent ? '#FCA5A5' : '#fff',
+              background: 'rgba(255,255,255,0.1)',
+              border: `1.5px solid ${urgent ? 'rgba(252,165,165,0.4)' : 'rgba(255,255,255,0.2)'}`,
+              borderRadius: 8, padding: '6px 10px', minWidth: 44,
+              display: 'block', lineHeight: 1,
+            }}>
               {String(v).padStart(2, '0')}
             </div>
-            <div
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 9,
-                color: 'var(--slate)',
-                marginTop: 2,
-              }}
-            >
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9,
+              color: 'rgba(255,255,255,0.45)', marginTop: 4 }}>
               {label}
             </div>
           </div>
