@@ -4,7 +4,7 @@ import {
   getAllStudents, saveTutorOverrides, upsertStudent,
   deleteStudent as fbDeleteStudent, clearAllData
 } from '../lib/firebase'
-import { SECTIONS, BADGES, TOTAL_XP, PASS_XP, PASS_MERIT_XP, calcXP, checkBadges, WEEKS_DATA } from '../data/gameData'
+import { SECTIONS, BADGES, TOTAL_XP, PASS_XP, PASS_MERIT_XP, calcXP, calcEarlyBonus, calcVerifiedXP, checkBadges, WEEKS_DATA } from '../data/gameData'
 
 const CRIT_COLORS = {
   P3: { bg: '#d4edda', border: '#74c38a', text: '#155724' },
@@ -23,6 +23,10 @@ function gradeLabel(xp) {
   if (xp >= PASS_MERIT_XP) return { g: 'M',  c: 'var(--merit)' }
   if (xp >= PASS_XP)       return { g: 'P',  c: 'var(--pass)' }
   return                          { g: '—',  c: 'var(--slate)' }
+}
+
+function getVerifiedXP(s) {
+  return calcVerifiedXP(s.completedSections, s.badges, s.tutorOverrides, s.earlyBonuses)
 }
 
 // Work out what sections should ideally be done by now
@@ -68,20 +72,216 @@ function getScheduleStatus(completedSections) {
   return                                    { label: 'Behind', color: 'var(--red)', bg: 'var(--red-light)', border: '#FCA5A5' }
 }
 
+// ─── XP Breakdown Modal ───────────────────────────────────────
+function XPBreakdownModal({ student, onClose }) {
+  const verified = SECTIONS.filter(s => student.tutorOverrides?.[s.id] === true)
+  const selfOnly = (student.completedSections || []).filter(id => student.tutorOverrides?.[id] !== true)
+  const earnedBadges = BADGES.filter(b => (student.badges || []).includes(b.id))
+  const earlyBonuses = student.earlyBonuses || {}
+  const verifyTimestamps = student.verifyTimestamps || {}
+
+  const baseXP = verified.reduce((a, s) => a + s.xp, 0)
+  const badgeXP = earnedBadges.reduce((a, b) => a + b.xpBonus, 0)
+  const earlyXP = Object.values(earlyBonuses).reduce((a, v) => a + v, 0)
+  const totalVerifiedXP = baseXP + badgeXP + earlyXP
+
+  const bandColors = {
+    pass: { color: 'var(--pass)', bg: 'var(--pass-light)', border: 'var(--pass-mid)' },
+    merit: { color: 'var(--merit)', bg: '#fffbeb', border: '#FCD34D' },
+    distinction: { color: 'var(--dist)', bg: '#fff7ed', border: '#FDBA74' },
+  }
+
+  function formatDate(ts) {
+    if (!ts) return null
+    return new Date(ts).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+  }
+
+  function getEarlyLabel(bonus) {
+    if (bonus >= 40) return { text: 'Very Early', color: '#7C3AED' }
+    if (bonus >= 20) return { text: 'Early', color: '#2563EB' }
+    return { text: 'Slightly Early', color: '#0891B2' }
+  }
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      onClick={onClose}
+      style={{ position: 'fixed', inset: 0, zIndex: 1300, background: 'rgba(10,15,30,0.65)',
+        backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+      <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+        exit={{ y: 12, opacity: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 26 }}
+        onClick={e => e.stopPropagation()}
+        style={{ background: 'var(--white)', borderRadius: 16, width: '100%', maxWidth: 560,
+          maxHeight: '88vh', display: 'flex', flexDirection: 'column',
+          boxShadow: '0 24px 60px rgba(0,0,0,0.25)', overflow: 'hidden' }}>
+
+        {/* Header */}
+        <div style={{ padding: '18px 22px 14px', borderBottom: '1px solid var(--border)',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          background: 'var(--navy)' }}>
+          <div>
+            <div style={{ fontFamily: 'var(--font-head)', fontSize: 17, fontWeight: 900, color: '#fff' }}>
+              {student.name}
+            </div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>
+              XP Breakdown
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 20, fontWeight: 900, color: '#FCD34D' }}>
+                {totalVerifiedXP} XP
+              </div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'rgba(255,255,255,0.4)' }}>
+                verified total
+              </div>
+            </div>
+            <button onClick={onClose}
+              style={{ fontSize: 18, color: 'rgba(255,255,255,0.6)', padding: '4px 8px', borderRadius: 6 }}>✕</button>
+          </div>
+        </div>
+
+        {/* Summary pills */}
+        <div style={{ display: 'flex', gap: 8, padding: '12px 22px', borderBottom: '1px solid var(--border)',
+          background: 'var(--light)', flexWrap: 'wrap' }}>
+          {[
+            { label: 'Section XP', val: baseXP, color: 'var(--navy)' },
+            { label: 'Badge XP', val: badgeXP, color: 'var(--gold)' },
+            { label: 'Early Bonus', val: earlyXP, color: '#7C3AED' },
+          ].map(({ label, val, color }) => (
+            <div key={label} style={{ background: 'var(--white)', border: '1.5px solid var(--border)',
+              borderRadius: 8, padding: '8px 14px', textAlign: 'center', flex: 1, minWidth: 100 }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 16, fontWeight: 900, color }}>{val}</div>
+              <div style={{ fontSize: 11, color: 'var(--slate)', marginTop: 2 }}>{label}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 22px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+
+          {/* Verified sections by band */}
+          {['pass', 'merit', 'distinction'].map(band => {
+            const bandSecs = verified.filter(s => s.band === band)
+            if (bandSecs.length === 0) return null
+            const { color, bg, border } = bandColors[band]
+            return (
+              <div key={band}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700,
+                  color, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
+                  {band} sections
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  {bandSecs.map(sec => {
+                    const bonus = earlyBonuses[sec.id] || 0
+                    const ts = verifyTimestamps[sec.id]
+                    const earlyLabel = bonus > 0 ? getEarlyLabel(bonus) : null
+                    return (
+                      <div key={sec.id} style={{ display: 'flex', alignItems: 'center', gap: 10,
+                        background: bg, border: `1px solid ${border}`, borderRadius: 8, padding: '9px 12px' }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--navy)' }}>{sec.title}</div>
+                          {ts && (
+                            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--slate)', marginTop: 2 }}>
+                              ✓ Verified {formatDate(ts)}
+                            </div>
+                          )}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                          {earlyLabel && (
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700,
+                              color: earlyLabel.color, background: earlyLabel.color + '18',
+                              border: `1px solid ${earlyLabel.color}44`,
+                              borderRadius: 4, padding: '1px 6px' }}>
+                              ⚡ +{bonus} {earlyLabel.text}
+                            </span>
+                          )}
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color }}>
+                            +{sec.xp + bonus}
+                          </span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })}
+
+          {/* Badges */}
+          {earnedBadges.length > 0 && (
+            <div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700,
+                color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
+                Badges
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                {earnedBadges.map(b => (
+                  <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 10,
+                    background: '#fffbeb', border: '1px solid #FCD34D', borderRadius: 8, padding: '9px 12px' }}>
+                    <span style={{ fontSize: 18 }}>{b.icon}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--navy)' }}>{b.name}</div>
+                      <div style={{ fontSize: 11, color: 'var(--slate)' }}>{b.desc}</div>
+                    </div>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: 'var(--gold)' }}>
+                      +{b.xpBonus}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Self-reported (not yet verified) */}
+          {selfOnly.length > 0 && (
+            <div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700,
+                color: 'var(--slate)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
+                Self-reported (pending verification)
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {selfOnly.map(id => {
+                  const sec = SECTIONS.find(s => s.id === id)
+                  if (!sec) return null
+                  return (
+                    <div key={id} style={{ display: 'flex', alignItems: 'center', gap: 10,
+                      background: 'var(--light)', border: '1px solid var(--border)', borderRadius: 8,
+                      padding: '8px 12px', opacity: 0.7 }}>
+                      <span style={{ fontSize: 12, color: 'var(--slate)', flex: 1 }}>{sec.title}</span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--slate)' }}>
+                        not verified
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
+
 // ─── Leaderboard tab ───────────────────────────────────────────
 function LeaderboardTab({ students }) {
+  const [breakdown, setBreakdown] = useState(null)
   const sorted = [...students].sort((a, b) => (b.xp || 0) - (a.xp || 0))
 
   return (
     <div>
       <div style={{ marginBottom: 16 }}>
         <p style={{ fontSize: 13, color: 'var(--slate)' }}>
-          Ranked by XP. Shows grade, sections completed, and badges earned.
+          Ranked by verified XP. Tap a student to see their full XP breakdown.
         </p>
       </div>
+      <AnimatePresence>
+        {breakdown && <XPBreakdownModal student={breakdown} onClose={() => setBreakdown(null)} />}
+      </AnimatePresence>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {sorted.map((s, i) => {
-          const { g, c } = gradeLabel(s.xp || 0)
+          const vXP = getVerifiedXP(s)
+          const { g, c } = gradeLabel(vXP)
           const completed = s.completedSections || []
           const passD  = SECTIONS.filter(x => x.band === 'pass' && completed.includes(x.id)).length
           const meritD = SECTIONS.filter(x => x.band === 'merit' && completed.includes(x.id)).length
@@ -93,11 +293,15 @@ function LeaderboardTab({ students }) {
           const initial = s.name?.[0] || '?'
 
           return (
-            <div key={s.studentId} style={{
-              background: 'var(--white)', borderRadius: 10,
-              border: `1.5px solid ${i === 0 ? '#FCD34D' : i === 1 ? '#CBD5E1' : i === 2 ? '#D97706' : 'var(--border)'}`,
-              overflow: 'hidden',
-            }}>
+            <div key={s.studentId}
+              onClick={() => setBreakdown(s)}
+              onMouseEnter={e => e.currentTarget.style.boxShadow='var(--shadow-md)'}
+              onMouseLeave={e => e.currentTarget.style.boxShadow='none'}
+              style={{
+                background: 'var(--white)', borderRadius: 10, cursor: 'pointer', transition: 'box-shadow 0.15s',
+                border: `1.5px solid ${i === 0 ? '#FCD34D' : i === 1 ? '#CBD5E1' : i === 2 ? '#D97706' : 'var(--border)'}`,
+                overflow: 'hidden',
+              }}>
               {/* Main row */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px' }}>
                 {/* Rank */}
@@ -134,6 +338,7 @@ function LeaderboardTab({ students }) {
                   </div>
                   <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--slate)', marginTop: 1 }}>
                     {s.studentId} · Pass {passD}/{passT} · Merit {meritD}/{SECTIONS.filter(x=>x.band==='merit').length} · Dist {distD}/{SECTIONS.filter(x=>x.band==='distinction').length}
+                    {(s.streak || 0) > 1 && <span style={{ marginLeft: 6, color: '#F97316', fontWeight: 700 }}>🔥 {s.streak}d</span>}
                   </div>
                 </div>
 
@@ -145,7 +350,7 @@ function LeaderboardTab({ students }) {
                     </span>
                   )}
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>
-                    {s.xp || 0} XP
+                    {vXP} XP
                   </span>
                   <span style={{
                     fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700,
@@ -190,12 +395,19 @@ function StudentModal({ student, onClose, onSave }) {
   const [note, setNote] = useState(student.tutorNote || '')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const verifyTimestamps = useRef({ ...(student.verifyTimestamps || {}) })
 
   function toggleOverride(sectionId, state) {
     setOverrides(prev => {
       const next = { ...prev }
-      if (next[sectionId] === state) delete next[sectionId]
-      else next[sectionId] = state
+      if (next[sectionId] === state) {
+        delete next[sectionId]
+        delete verifyTimestamps.current[sectionId]
+      } else {
+        next[sectionId] = state
+        if (state === true) verifyTimestamps.current[sectionId] = Date.now()
+        else delete verifyTimestamps.current[sectionId]
+      }
       return next
     })
     setSaved(false)
@@ -203,6 +415,7 @@ function StudentModal({ student, onClose, onSave }) {
 
   async function handleSave() {
     setSaving(true)
+    const now = Date.now()
     const finalSections = SECTIONS.filter(sec => {
       const t = overrides[sec.id]
       const s = (student.completedSections || []).includes(sec.id)
@@ -211,16 +424,34 @@ function StudentModal({ student, onClose, onSave }) {
       return s
     }).map(s => s.id)
 
+    // Calculate early bonuses for newly verified sections
+    // Use student's own completion timestamp — not the verify time
+    const completedTimestamps = student.completedTimestamps || {}
+    const prevEarlyBonuses = student.earlyBonuses || {}
+    const newEarlyBonuses = { ...prevEarlyBonuses }
+    Object.entries(overrides).forEach(([sectionId, val]) => {
+      if (val === true && !(sectionId in prevEarlyBonuses)) {
+        // Use when the STUDENT ticked the box, not when tutor verified
+        const ts = completedTimestamps[sectionId] || now
+        const bonus = calcEarlyBonus(sectionId, ts, overrides)
+        if (bonus > 0) newEarlyBonuses[sectionId] = bonus
+      } else if (val === false) {
+        delete newEarlyBonuses[sectionId]
+        delete verifyTimestamps.current[sectionId]
+      }
+    })
+
     const newBadges = checkBadges(finalSections, 0, student.streak || 1, overrides)
     const allBadges = [...new Set([...(student.badges || []), ...newBadges])]
-    const newXP = calcXP(finalSections, allBadges)
+    const newXP = calcXP(finalSections, allBadges, newEarlyBonuses)
 
     await saveTutorOverrides(student.studentId, {
       completedSections: finalSections, xp: newXP, badges: allBadges,
-      tutorOverrides: overrides, tutorNote: note,
+      tutorOverrides: overrides, tutorNote: note, earlyBonuses: newEarlyBonuses,
+      verifyTimestamps: verifyTimestamps.current,
     })
     setSaving(false); setSaved(true)
-    onSave({ ...student, completedSections: finalSections, xp: newXP, badges: allBadges, tutorOverrides: overrides, tutorNote: note })
+    onSave({ ...student, completedSections: finalSections, xp: newXP, badges: allBadges, tutorOverrides: overrides, tutorNote: note, earlyBonuses: newEarlyBonuses, verifyTimestamps: verifyTimestamps.current })
   }
 
   const passTotal = SECTIONS.filter(s => s.band === 'pass').length
@@ -246,6 +477,11 @@ function StudentModal({ student, onClose, onSave }) {
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--slate)' }}>{student.studentId}</span>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--gold)', fontWeight: 700 }}>{student.xp || 0} XP</span>
+              {Object.keys(student.earlyBonuses || {}).length > 0 && (
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: '#7C3AED', fontWeight: 700 }}>
+                  ⚡ +{Object.values(student.earlyBonuses || {}).reduce((a,v) => a+v, 0)} early bonus
+                </span>
+              )}
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--slate)' }}>{passDone}/{passTotal} pass</span>
             </div>
           </div>
@@ -280,6 +516,20 @@ function StudentModal({ student, onClose, onSave }) {
                       {studentDone && !override && (
                         <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--slate)', flexShrink: 0 }}>self ✓</span>
                       )}
+                      {override === true && (() => {
+                        // Show stored bonus if already saved, otherwise preview what they'd get
+                        const storedBonus = (student.earlyBonuses || {})[sec.id]
+                        const ts = (student.completedTimestamps || {})[sec.id]
+                        const previewBonus = ts ? calcEarlyBonus(sec.id, ts, overrides) : 0
+                        const bonus = storedBonus ?? previewBonus
+                        return bonus > 0 ? (
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700,
+                            color: '#7C3AED', background: '#EDE9FE', border: '1px solid #C4B5FD',
+                            borderRadius: 4, padding: '1px 6px', flexShrink: 0 }}>
+                            ⚡+{bonus}
+                          </span>
+                        ) : null
+                      })()}
                       <button onClick={() => toggleOverride(sec.id, true)}
                         style={{ padding: '4px 10px', borderRadius: 5, fontSize: 11, fontWeight: 700,
                           background: override === true ? 'var(--pass)' : 'var(--pass-light)',
@@ -465,6 +715,7 @@ export default function TutorDashboard({ onLogout }) {
   const [search, setSearch] = useState('')
   const [tab, setTab] = useState('students') // 'students' | 'leaderboard'
   const [modal, setModal] = useState(null)
+  const [breakdown, setBreakdown] = useState(null)
   const [editModal, setEditModal] = useState(null)
   const [confirm, setConfirm] = useState(null)
 
@@ -494,6 +745,62 @@ export default function TutorDashboard({ onLogout }) {
       onConfirm: async () => {
         await fbDeleteStudent(student.studentId)
         setStudents(prev => prev.filter(s => s.studentId !== student.studentId))
+        setConfirm(null)
+      }
+    })
+  }
+
+  async function handleBackfillBonuses() {
+    setConfirm({
+      icon: '⚡', title: 'Backfill early bonuses?',
+      message: 'Students who were verified before timestamp tracking existed will each get +25 XP per verified section with no timestamp. This runs once.',
+      requireWord: 'BACKFILL',
+      onConfirm: async () => {
+        const updated = []
+        for (const s of students) {
+          const overrides = s.tutorOverrides || {}
+          const timestamps = s.completedTimestamps || {}
+          const earlyBonuses = { ...(s.earlyBonuses || {}) }
+          let changed = false
+
+          // Find verified sections with no completion timestamp and no existing bonus
+          Object.entries(overrides).forEach(([sectionId, val]) => {
+            if (val === true && !timestamps[sectionId] && !(sectionId in earlyBonuses)) {
+              earlyBonuses[sectionId] = 25
+              changed = true
+            }
+          })
+
+          if (changed) {
+            const newXP = calcXP(s.completedSections || [], s.badges || [], earlyBonuses)
+            await upsertStudent(s.studentId, { ...s, earlyBonuses, xp: newXP })
+            updated.push({ ...s, earlyBonuses, xp: newXP })
+          } else {
+            updated.push(s)
+          }
+        }
+        setStudents(updated.sort((a, b) => (b.xp || 0) - (a.xp || 0)))
+        setConfirm(null)
+      }
+    })
+  }
+
+  async function handleRecalcBadges() {
+    setConfirm({
+      icon: '🏅', title: 'Recalculate all badges?',
+      message: 'This will strip any badges earned from self-reported sections and recalculate XP based on tutor-verified sections only.',
+      requireWord: 'RECALC',
+      onConfirm: async () => {
+        const updated = []
+        for (const s of students) {
+          const overrides = s.tutorOverrides || {}
+          const verifiedSections = (s.completedSections || []).filter(id => overrides[id] === true)
+          const newBadges = checkBadges(verifiedSections, 0, s.streak || 1, overrides)
+          const newXP = calcXP(s.completedSections || [], newBadges, s.earlyBonuses || {})
+          await upsertStudent(s.studentId, { ...s, badges: newBadges, xp: newXP })
+          updated.push({ ...s, badges: newBadges, xp: newXP })
+        }
+        setStudents(updated.sort((a, b) => (b.xp || 0) - (a.xp || 0)))
         setConfirm(null)
       }
     })
@@ -599,6 +906,16 @@ export default function TutorDashboard({ onLogout }) {
                 style={{ padding: '9px 18px', background: 'var(--pass)', color: '#fff', borderRadius: 8, fontSize: 13, fontWeight: 700 }}>
                 + Add Student
               </button>
+              <button onClick={handleBackfillBonuses}
+                style={{ padding: '9px 18px', background: '#FFF7ED', color: '#C2410C',
+                  border: '1.5px solid #FDBA74', borderRadius: 8, fontSize: 13, fontWeight: 700 }}>
+                ⚡ Backfill Bonuses
+              </button>
+              <button onClick={handleRecalcBadges}
+                style={{ padding: '9px 18px', background: '#EDE9FE', color: '#7C3AED',
+                  border: '1.5px solid #C4B5FD', borderRadius: 8, fontSize: 13, fontWeight: 700 }}>
+                🏅 Recalc Badges
+              </button>
               <button onClick={handleClearAll}
                 style={{ padding: '9px 18px', background: 'var(--red-light)', color: 'var(--red)',
                   border: '1.5px solid #FCA5A5', borderRadius: 8, fontSize: 13, fontWeight: 700 }}>
@@ -613,7 +930,7 @@ export default function TutorDashboard({ onLogout }) {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr style={{ background: 'var(--light)', borderBottom: '1px solid var(--border)' }}>
-                      {['Student', 'ID', 'XP', 'Grade', 'Pass', 'Merit', 'Dist', 'Badges', 'Status', ''].map(h => (
+                      {['Student', 'ID', 'XP', 'Grade', 'Pass', 'Merit', 'Dist', 'Badges', 'Streak', 'Status', ''].map(h => (
                         <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontFamily: 'var(--font-mono)',
                           fontSize: 11, fontWeight: 700, color: 'var(--slate)', textTransform: 'uppercase',
                           letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{h}</th>
@@ -622,7 +939,8 @@ export default function TutorDashboard({ onLogout }) {
                   </thead>
                   <tbody>
                     {filtered.map((s, i) => {
-                      const { g, c } = gradeLabel(s.xp || 0)
+                      const vXP = getVerifiedXP(s)
+                const { g, c } = gradeLabel(vXP)
                       const completed = s.completedSections || []
                       const passD  = SECTIONS.filter(x => x.band === 'pass' && completed.includes(x.id)).length
                       const meritD = SECTIONS.filter(x => x.band === 'merit' && completed.includes(x.id)).length
@@ -675,6 +993,13 @@ export default function TutorDashboard({ onLogout }) {
                             <span style={{ fontSize: 12, color: 'var(--slate)' }}>{(s.badges || []).length}</span>
                           </td>
                           <td style={{ padding: '11px 12px' }}>
+                            {(s.streak || 0) > 1 && (
+                              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: '#F97316' }}>
+                                🔥 {s.streak}d
+                              </span>
+                            )}
+                          </td>
+                          <td style={{ padding: '11px 12px' }}>
                             {schedStatus && (
                               <span style={{
                                 fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700,
@@ -685,6 +1010,9 @@ export default function TutorDashboard({ onLogout }) {
                             )}
                           </td>
                           <td style={{ padding: '11px 12px' }} onClick={e => e.stopPropagation()}>
+                            <button onClick={() => setBreakdown(s)}
+                              style={{ fontSize: 13, padding: '3px 8px', borderRadius: 5,
+                                background: '#f0fdf4', color: 'var(--pass)', marginRight: 4, fontWeight: 700 }}>📊</button>
                             <button onClick={() => setEditModal(s)}
                               style={{ fontSize: 13, padding: '3px 8px', borderRadius: 5,
                                 background: '#EEF2FF', color: '#6366F1', marginRight: 4, fontWeight: 700 }}>✏️</button>
@@ -706,6 +1034,9 @@ export default function TutorDashboard({ onLogout }) {
         )}
       </div>
 
+      <AnimatePresence>
+        {breakdown && <XPBreakdownModal student={breakdown} onClose={() => setBreakdown(null)} />}
+      </AnimatePresence>
       <AnimatePresence>
         {modal && <StudentModal student={modal} onClose={() => setModal(null)} onSave={updated => { handleOverrideSave(updated); setModal(null) }} />}
       </AnimatePresence>

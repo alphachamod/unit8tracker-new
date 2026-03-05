@@ -11,6 +11,7 @@ import ResourcesPage from './student/ResourcesPage'
 import FAQPage from './student/FAQPage'
 import SectionPopup from '../components/SectionPopup'
 import Toast from '../components/Toast'
+import LoadingScreen from '../components/LoadingScreen'
 
 const NAV_ITEMS = [
   { id:'home', label:'Home', emoji:'🏠' },
@@ -27,6 +28,7 @@ export default function StudentApp({ student, setStudent, onLogout }) {
   const [popup, setPopup] = useState(null)
   const [toast, setToast] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [pageLoading, setPageLoading] = useState(false)
   const syncTimer = useRef(null)
 
   // FIX 1: Pull fresh data on mount AND recalculate XP from server state
@@ -48,6 +50,7 @@ export default function StudentApp({ student, setStudent, onLogout }) {
         completedSections: data.completedSections,
         xp: data.xp,
         badges: data.badges,
+        completedTimestamps: data.completedTimestamps || {},
       }).catch(() => {})
     }, 1500)
   }, [])
@@ -63,6 +66,7 @@ export default function StudentApp({ student, setStudent, onLogout }) {
     setStudent(prev => {
       const completed  = prev.completedSections || []
       const overrides  = prev.tutorOverrides || {}
+      const timestamps = prev.completedTimestamps || {}
       const alreadyDone = completed.includes(sectionId)
 
       // Tutor-rejected: block toggle
@@ -82,6 +86,11 @@ export default function StudentApp({ student, setStudent, onLogout }) {
         ? completed.filter(id => id !== sectionId)
         : [...completed, sectionId]
 
+      // Record timestamp when ticked — remove when unticked
+      const newTimestamps = { ...timestamps }
+      if (!alreadyDone) newTimestamps[sectionId] = Date.now()
+      else delete newTimestamps[sectionId]
+
       const prevBadgeIds = prev.badges || []
       const newBadgeIds  = checkBadges(newCompleted, 0, prev.streak || 1, overrides)
       const earnedNow    = newBadgeIds.filter(id => !prevBadgeIds.includes(id))
@@ -90,7 +99,7 @@ export default function StudentApp({ student, setStudent, onLogout }) {
       // Always recalculate from scratch — never accumulate on top of old value
       const newXP = calcXP(newCompleted, allBadges)
 
-      const updated = { ...prev, completedSections: newCompleted, xp: newXP, badges: allBadges }
+      const updated = { ...prev, completedSections: newCompleted, xp: newXP, badges: allBadges, completedTimestamps: newTimestamps }
       scheduleSync(updated)
 
       if (!alreadyDone) {
@@ -108,9 +117,20 @@ export default function StudentApp({ student, setStudent, onLogout }) {
     })
   }
 
+  function navigateTo(newPage) {
+    if (newPage === page) return
+    setPageLoading(true)
+    setTimeout(() => {
+      setPage(newPage)
+      setPageLoading(false)
+    }, 400)
+  }
+
   const firstName = student.name?.split(' ')[0] || 'Student'
   const xp = student.xp || 0
   const grade = xp >= TOTAL_XP ? 'D' : xp >= PASS_MERIT_XP ? 'M' : xp >= PASS_XP ? 'P' : '—'
+
+  if (pageLoading) return <LoadingScreen message='Loading...' />
 
   return (
     <div style={{ minHeight:'100vh', background:'var(--light)' }}>
@@ -131,7 +151,7 @@ export default function StudentApp({ student, setStudent, onLogout }) {
             className="desktop-nav">
             {NAV_ITEMS.map(item => (
               <li key={item.id}>
-                <button onClick={() => setPage(item.id)}
+                <button onClick={() => navigateTo(item.id)}
                   style={{ fontSize:13, fontWeight:500, padding:'6px 10px', borderRadius:6,
                     background: page===item.id ? 'var(--navy)' : 'transparent',
                     color: page===item.id ? '#fff' : 'var(--slate)',
@@ -174,7 +194,7 @@ export default function StudentApp({ student, setStudent, onLogout }) {
               style={{ overflow:'hidden', borderTop:'1px solid var(--border)', background:'var(--white)' }}>
               <div style={{ padding:'8px 16px 12px', display:'flex', flexDirection:'column', gap:2 }}>
                 {NAV_ITEMS.map(item => (
-                  <button key={item.id} onClick={() => { setPage(item.id); setMenuOpen(false) }}
+                  <button key={item.id} onClick={() => { navigateTo(item.id); setMenuOpen(false) }}
                     style={{ textAlign:'left', padding:'10px 12px', borderRadius:8, fontSize:14, fontWeight:500,
                       background: page===item.id ? 'var(--navy)' : 'transparent',
                       color: page===item.id ? '#fff' : 'var(--slate)' }}>
@@ -192,7 +212,7 @@ export default function StudentApp({ student, setStudent, onLogout }) {
         <AnimatePresence mode="wait">
           <motion.div key={page} initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }}
             exit={{ opacity:0 }} transition={{ duration:0.2 }}>
-            {page === 'home'        && <HomePage student={student} onToggleSection={toggleSection} onNavigate={setPage} />}
+            {page === 'home'        && <HomePage student={student} onToggleSection={toggleSection} onNavigate={navigateTo} />}
             {page === 'timeline'    && <TimelinePage student={student} />}
             {page === 'sections'    && <SectionsPage student={student} onToggleSection={toggleSection} />}
             {page === 'leaderboard' && <LeaderboardPage student={student} />}

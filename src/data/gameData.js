@@ -84,27 +84,85 @@ export function getGradeFromXP(xp) {
   return null;
 }
 
-export function calcXP(completedSections, badges) {
+// Returns the expected week-end date for a given section based on WEEKS_DATA
+export function getSectionExpectedDate(sectionId) {
+  // Import WEEKS_DATA lazily to avoid circular — we define it after, so use a getter
+  const sec = SECTIONS.find(s => s.id === sectionId);
+  if (!sec) return null;
+  // Find which week this section's criteria first appears in
+  for (const week of WEEKS_DATA_REF) {
+    for (const item of week.items) {
+      if (item.criteria === sec.criteria) {
+        return new Date(week.end + 'T23:59:59');
+      }
+    }
+  }
+  return null;
+}
+
+// Calculate early bonus XP for a single section verified at a given timestamp
+// Based on how many days before the week-end deadline they completed it.
+// Max 100 XP — proportional to days early within that week.
+export function calcEarlyBonus(sectionId, verifiedAtMs) {
+  const expectedDate = getSectionExpectedDate(sectionId);
+  if (!expectedDate || !verifiedAtMs) return 0;
+
+  const verifiedDate = new Date(verifiedAtMs);
+  const msEarly = expectedDate.getTime() - verifiedDate.getTime();
+  if (msEarly <= 0) return 0; // on time or late — no bonus
+
+  // Week duration is always 7 days
+  const weekMs = 7 * 24 * 60 * 60 * 1000;
+  const weekStart = new Date(expectedDate.getTime() - weekMs);
+  const weekDurationMs = expectedDate.getTime() - weekStart.getTime();
+
+  // How far through the week did they complete it? 0 = start of week, 1 = end of week
+  const msIntoWeek = verifiedDate.getTime() - weekStart.getTime();
+  const progress = Math.max(0, Math.min(1, msIntoWeek / weekDurationMs));
+
+  // Earlier in the week = higher bonus. Start of week = 100 XP, end of week = 0 XP
+  const bonus = Math.round((1 - progress) * 50);
+  return Math.min(50, Math.max(0, bonus));
+}
+
+export function calcXP(completedSections, badges, earlyBonuses = {}) {
   const base = SECTIONS.filter(s => completedSections.includes(s.id)).reduce((a, s) => a + s.xp, 0);
   const badgeBonus = (badges || []).reduce((a, bid) => {
     const b = BADGES.find(x => x.id === bid);
     return a + (b?.xpBonus || 0);
   }, 0);
+  const earlyTotal = Object.values(earlyBonuses || {}).reduce((a, v) => a + (v || 0), 0);
   const days = getDaysElapsed();
-  let earlyBonus = 0;
+  let milestoneBonus = 0;
   const passIds = SECTIONS.filter(s => s.band === 'pass').map(s => s.id);
   const meritIds = SECTIONS.filter(s => s.band !== 'distinction').map(s => s.id);
-  if (days <= 7  && ['s1','s2a','s2b','s2c','s2d','s2e','s2f','s2g'].every(id => completedSections.includes(id))) earlyBonus = Math.max(earlyBonus, 120);
-  if (days <= 21 && passIds.every(id => completedSections.includes(id))) earlyBonus = Math.max(earlyBonus, 200);
-  if (days <= 28 && meritIds.every(id => completedSections.includes(id))) earlyBonus = Math.max(earlyBonus, 300);
-  if (days <= 35 && SECTIONS.every(s => completedSections.includes(s.id))) earlyBonus = Math.max(earlyBonus, 500);
-  return base + badgeBonus + earlyBonus;
+  if (days <= 7  && ['s1','s2a','s2b','s2c','s2d','s2e','s2f','s2g'].every(id => completedSections.includes(id))) milestoneBonus = Math.max(milestoneBonus, 120);
+  if (days <= 21 && passIds.every(id => completedSections.includes(id))) milestoneBonus = Math.max(milestoneBonus, 200);
+  if (days <= 28 && meritIds.every(id => completedSections.includes(id))) milestoneBonus = Math.max(milestoneBonus, 300);
+  if (days <= 35 && SECTIONS.every(s => completedSections.includes(s.id))) milestoneBonus = Math.max(milestoneBonus, 500);
+  return base + badgeBonus + milestoneBonus + earlyTotal;
+}
+
+// Verified-only XP — used for leaderboard (no self-reported sections count)
+export function calcVerifiedXP(completedSections, badges, tutorOverrides, earlyBonuses = {}) {
+  const verifiedSections = (completedSections || []).filter(id => tutorOverrides?.[id] === true);
+  const base = SECTIONS.filter(s => verifiedSections.includes(s.id)).reduce((a, s) => a + s.xp, 0);
+  const badgeBonus = (badges || []).reduce((a, bid) => {
+    const b = BADGES.find(x => x.id === bid);
+    return a + (b?.xpBonus || 0);
+  }, 0);
+  const earlyTotal = Object.entries(earlyBonuses || {})
+    .filter(([id]) => tutorOverrides?.[id] === true)
+    .reduce((a, [, v]) => a + (v || 0), 0);
+  return base + badgeBonus + earlyTotal;
 }
 
 export function checkBadges(completedSections, xp, streak, tutorOverrides = {}) {
   const days = getDaysElapsed();
+  // Only tutor-verified sections count towards badges
+  const verifiedSections = completedSections.filter(id => tutorOverrides[id] === true);
   return BADGES
-    .filter(b => b.condition(completedSections, xp, streak, days, tutorOverrides))
+    .filter(b => b.condition(verifiedSections, xp, streak, days, tutorOverrides))
     .map(b => b.id);
 }
 
@@ -179,6 +237,8 @@ export const SECTION_POPUPS = {
   s12: { emoji:'🪞', title:'Self-reflection written!', msg:"I already know how you managed your time. I've seen your submission dates. Be honest in this section. It's worth more than you think." },
 };
 
+// Forward reference used by getSectionExpectedDate
+let WEEKS_DATA_REF = [];
 export const WEEKS_DATA = [
   { label:'Week 1', dates:'05–10 Mar', start:'2026-03-05', end:'2026-03-10',
     items:[
@@ -228,6 +288,7 @@ export const WEEKS_DATA = [
         subs:['Delete all red guidance text','Right-click TOC → Update Field','Check every screenshot has a caption','Filename: YourName_StudentID_Unit8_A02.docx','Submit on Canvas before 5:00pm'] },
     ]},
 ];
+WEEKS_DATA_REF = WEEKS_DATA;
 
 export const FAQ_DATA = [
   { q:'What kind of business can I use?', a:'Any real small business — a corner shop, a family member\'s business, a friend\'s venture, or even your own. It must be real and must not already have a strong social media presence.' },

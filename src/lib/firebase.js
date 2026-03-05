@@ -4,20 +4,16 @@ import {
   serverTimestamp, onValue, off
 } from 'firebase/database';
 
-// ─── FIREBASE CONFIG ─────────────────────────────────────────
-// These values come from your Firebase Console → Project Settings.
-// `databaseURL` must be copied from your Realtime Database settings.
 const firebaseConfig = {
   apiKey: "AIzaSyCISD6kFCWYjbal2rL32u6pQlrDyLSwX3I",
   authDomain: "unit8guide.firebaseapp.com",
-  // TODO: replace this with the exact Realtime Database URL from Firebase
   databaseURL: "https://unit8guide-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "unit8guide",
   storageBucket: "unit8guide.firebasestorage.app",
   messagingSenderId: "218719342294",
-  appId: "1:218719342294:web:d56053b4af0220e5114377"
+  appId: "1:218719342294:web:d56053b4af0220e5114377",
+  measurementId: "G-QL8PWSS8LB"
 };
-// ─────────────────────────────────────────────────────────────
 
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
@@ -62,11 +58,40 @@ export async function loginStudent(studentId, name) {
   }
 }
 
-export async function saveProgress(studentId, { completedSections, xp, badges }) {
+export async function saveProgress(studentId, { completedSections, xp, badges, completedTimestamps }) {
+  // Recalculate streak based on consecutive days with section completions
+  const timestamps = completedTimestamps || {};
+  const today = new Date().toISOString().split('T')[0];
+
+  // Get unique days where sections were completed
+  const completionDays = [...new Set(
+    Object.values(timestamps).map(ms => new Date(ms).toISOString().split('T')[0])
+  )].sort();
+
+  // Count consecutive days ending today or yesterday
+  let streak = 0;
+  if (completionDays.length > 0) {
+    const lastDay = completionDays[completionDays.length - 1];
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    // Only count streak if they completed something today or yesterday (still active)
+    if (lastDay === today || lastDay === yesterday) {
+      streak = 1;
+      for (let i = completionDays.length - 2; i >= 0; i--) {
+        const curr = new Date(completionDays[i + 1]);
+        const prev = new Date(completionDays[i]);
+        const diffDays = Math.round((curr - prev) / 86400000);
+        if (diffDays === 1) streak++;
+        else break;
+      }
+    }
+  }
+
   await update(studentRef(studentId), {
     completedSections,
     xp,
     badges,
+    completedTimestamps: timestamps,
+    streak: Math.max(streak, 1),
     lastSeen: Date.now(),
   });
 }
@@ -88,13 +113,15 @@ export async function getAllStudents() {
   return Object.entries(snap.val()).map(([id, data]) => ({ studentId: id, ...data }));
 }
 
-export async function saveTutorOverrides(studentId, { completedSections, xp, badges, tutorOverrides, tutorNote }) {
+export async function saveTutorOverrides(studentId, { completedSections, xp, badges, tutorOverrides, tutorNote, earlyBonuses, verifyTimestamps }) {
   await update(studentRef(studentId), {
     completedSections,
     xp,
     badges,
     tutorOverrides,
     tutorNote,
+    earlyBonuses: earlyBonuses || {},
+    verifyTimestamps: verifyTimestamps || {},
     lastSeen: Date.now(),
   });
 }
