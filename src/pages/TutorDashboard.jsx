@@ -4,7 +4,7 @@ import {
   getAllStudents, saveTutorOverrides, upsertStudent,
   deleteStudent as fbDeleteStudent, clearAllData
 } from '../lib/firebase'
-import { SECTIONS, BADGES, TOTAL_XP, PASS_XP, PASS_MERIT_XP, calcXP, checkBadges } from '../data/gameData'
+import { SECTIONS, BADGES, TOTAL_XP, PASS_XP, PASS_MERIT_XP, calcXP, checkBadges, WEEKS_DATA } from '../data/gameData'
 
 const CRIT_COLORS = {
   P3: { bg: '#d4edda', border: '#74c38a', text: '#155724' },
@@ -19,10 +19,169 @@ const CRIT_COLORS = {
 }
 
 function gradeLabel(xp) {
-  if (xp >= TOTAL_XP) return { g: 'D*', c: 'var(--dist)' }
-  if (xp >= PASS_MERIT_XP) return { g: 'M', c: 'var(--merit)' }
-  if (xp >= PASS_XP) return { g: 'P', c: 'var(--pass)' }
-  return { g: '—', c: 'var(--slate)' }
+  if (xp >= TOTAL_XP)      return { g: 'D*', c: 'var(--dist)' }
+  if (xp >= PASS_MERIT_XP) return { g: 'M',  c: 'var(--merit)' }
+  if (xp >= PASS_XP)       return { g: 'P',  c: 'var(--pass)' }
+  return                          { g: '—',  c: 'var(--slate)' }
+}
+
+// Work out what sections should ideally be done by now
+function getExpectedSections() {
+  const now = new Date()
+  const expected = []
+  for (const week of WEEKS_DATA) {
+    const weekEnd = new Date(week.end + 'T23:59:59')
+    if (now >= weekEnd) {
+      // All sections mentioned in this week's items
+      for (const item of week.items) {
+        const sectionIds = SECTIONS
+          .filter(s => s.criteria === item.criteria)
+          .map(s => s.id)
+        expected.push(...sectionIds)
+      }
+    }
+  }
+  return [...new Set(expected)]
+}
+
+function getScheduleStatus(completedSections) {
+  const expected = getExpectedSections()
+  if (expected.length === 0) return null // Week 1 still in progress
+
+  const completed = completedSections || []
+  const completedExpected = expected.filter(id => completed.includes(id)).length
+  const ratio = completedExpected / expected.length
+
+  // Also check if they're ahead — completing things not yet expected
+  const totalDone = completed.length
+  const totalSections = SECTIONS.length
+  const weekProgress = WEEKS_DATA.findIndex(w => {
+    const now = new Date()
+    return now >= new Date(w.start) && now <= new Date(w.end + 'T23:59:59')
+  })
+  const currentWeekIndex = weekProgress === -1 ? WEEKS_DATA.length - 1 : weekProgress
+  const expectedTotal = Math.round((currentWeekIndex / WEEKS_DATA.length) * totalSections)
+
+  if (totalDone > expectedTotal + 2) return { label: 'Ahead', color: '#7C3AED', bg: '#EDE9FE', border: '#C4B5FD' }
+  if (ratio >= 0.8)                  return { label: 'On Track', color: 'var(--pass)', bg: 'var(--pass-light)', border: 'var(--pass-mid)' }
+  if (ratio >= 0.5)                  return { label: 'Slightly Behind', color: '#B45309', bg: '#FEF3C7', border: '#FCD34D' }
+  return                                    { label: 'Behind', color: 'var(--red)', bg: 'var(--red-light)', border: '#FCA5A5' }
+}
+
+// ─── Leaderboard tab ───────────────────────────────────────────
+function LeaderboardTab({ students }) {
+  const sorted = [...students].sort((a, b) => (b.xp || 0) - (a.xp || 0))
+
+  return (
+    <div>
+      <div style={{ marginBottom: 16 }}>
+        <p style={{ fontSize: 13, color: 'var(--slate)' }}>
+          Ranked by XP. Shows grade, sections completed, and badges earned.
+        </p>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {sorted.map((s, i) => {
+          const { g, c } = gradeLabel(s.xp || 0)
+          const completed = s.completedSections || []
+          const passD  = SECTIONS.filter(x => x.band === 'pass' && completed.includes(x.id)).length
+          const meritD = SECTIONS.filter(x => x.band === 'merit' && completed.includes(x.id)).length
+          const distD  = SECTIONS.filter(x => x.band === 'distinction' && completed.includes(x.id)).length
+          const passT  = SECTIONS.filter(x => x.band === 'pass').length
+          const badgeCount = (s.badges || []).length
+          const earnedBadges = BADGES.filter(b => (s.badges || []).includes(b.id))
+          const schedStatus = getScheduleStatus(completed)
+          const initial = s.name?.[0] || '?'
+
+          return (
+            <div key={s.studentId} style={{
+              background: 'var(--white)', borderRadius: 10,
+              border: `1.5px solid ${i === 0 ? '#FCD34D' : i === 1 ? '#CBD5E1' : i === 2 ? '#D97706' : 'var(--border)'}`,
+              overflow: 'hidden',
+            }}>
+              {/* Main row */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px' }}>
+                {/* Rank */}
+                <div style={{
+                  width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
+                  background: i === 0 ? '#FCD34D' : i === 1 ? '#CBD5E1' : i === 2 ? '#D97706' : 'var(--light)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700,
+                  color: i < 3 ? '#1a2035' : 'var(--slate)',
+                }}>
+                  {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
+                </div>
+
+                {/* Avatar */}
+                <div style={{
+                  width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
+                  background: 'var(--pass-light)', display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', fontFamily: 'var(--font-head)', fontSize: 14,
+                  fontWeight: 900, color: 'var(--pass)',
+                }}>{initial}</div>
+
+                {/* Name + status */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--navy)' }}>{s.name}</span>
+                    {schedStatus && (
+                      <span style={{
+                        fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700,
+                        background: schedStatus.bg, color: schedStatus.color,
+                        border: `1px solid ${schedStatus.border}`,
+                        padding: '1px 7px', borderRadius: 4,
+                      }}>{schedStatus.label}</span>
+                    )}
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--slate)', marginTop: 1 }}>
+                    {s.studentId} · Pass {passD}/{passT} · Merit {meritD}/{SECTIONS.filter(x=>x.band==='merit').length} · Dist {distD}/{SECTIONS.filter(x=>x.band==='distinction').length}
+                  </div>
+                </div>
+
+                {/* XP + grade + badges */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                  {badgeCount > 0 && (
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--gold)', fontWeight: 700 }}>
+                      🏅 {badgeCount}
+                    </span>
+                  )}
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>
+                    {s.xp || 0} XP
+                  </span>
+                  <span style={{
+                    fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700,
+                    background: c + '22', color: c, padding: '2px 8px', borderRadius: 4,
+                  }}>{g}</span>
+                </div>
+              </div>
+
+              {/* Badge row */}
+              {earnedBadges.length > 0 && (
+                <div style={{
+                  display: 'flex', flexWrap: 'wrap', gap: 5,
+                  padding: '8px 16px 10px', paddingLeft: 74,
+                  borderTop: '1px solid var(--border)', background: 'var(--light)',
+                }}>
+                  {earnedBadges.map(b => (
+                    <div key={b.id} style={{
+                      display: 'flex', alignItems: 'center', gap: 4,
+                      background: 'var(--white)', border: '1px solid var(--border)',
+                      borderRadius: 5, padding: '2px 7px',
+                    }}>
+                      <span style={{ fontSize: 12 }}>{b.icon}</span>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--navy)' }}>{b.name}</span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--gold)', fontWeight: 700 }}>
+                        +{b.xpBonus}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
 }
 
 // ─── Student override modal ────────────────────────────────────
@@ -57,19 +216,15 @@ function StudentModal({ student, onClose, onSave }) {
     const newXP = calcXP(finalSections, allBadges)
 
     await saveTutorOverrides(student.studentId, {
-      completedSections: finalSections,
-      xp: newXP,
-      badges: allBadges,
-      tutorOverrides: overrides,
-      tutorNote: note,
+      completedSections: finalSections, xp: newXP, badges: allBadges,
+      tutorOverrides: overrides, tutorNote: note,
     })
-    setSaving(false)
-    setSaved(true)
+    setSaving(false); setSaved(true)
     onSave({ ...student, completedSections: finalSections, xp: newXP, badges: allBadges, tutorOverrides: overrides, tutorNote: note })
   }
 
-  const passTotal  = SECTIONS.filter(s => s.band === 'pass').length
-  const passDone   = SECTIONS.filter(s => s.band === 'pass' && (student.completedSections || []).includes(s.id)).length
+  const passTotal = SECTIONS.filter(s => s.band === 'pass').length
+  const passDone  = SECTIONS.filter(s => s.band === 'pass' && (student.completedSections || []).includes(s.id)).length
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -82,58 +237,39 @@ function StudentModal({ student, onClose, onSave }) {
         style={{ background: 'var(--white)', borderRadius: 16, width: '100%', maxWidth: 600,
           maxHeight: '90vh', display: 'flex', flexDirection: 'column',
           boxShadow: '0 24px 60px rgba(0,0,0,0.25)', overflow: 'hidden' }}>
-
-        {/* Header */}
         <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--border)',
           display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <h3 style={{ fontFamily: 'var(--font-head)', fontSize: 20, fontWeight: 900,
-              color: 'var(--navy)', marginBottom: 4 }}>{student.name}</h3>
+            <h3 style={{ fontFamily: 'var(--font-head)', fontSize: 20, fontWeight: 900, color: 'var(--navy)', marginBottom: 4 }}>
+              {student.name}
+            </h3>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--slate)' }}>
-                {student.studentId}
-              </span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--gold)', fontWeight: 700 }}>
-                {student.xp || 0} XP
-              </span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--slate)' }}>
-                {passDone}/{passTotal} pass
-              </span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--slate)' }}>{student.studentId}</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--gold)', fontWeight: 700 }}>{student.xp || 0} XP</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--slate)' }}>{passDone}/{passTotal} pass</span>
             </div>
           </div>
-          <button onClick={onClose}
-            style={{ fontSize: 18, color: 'var(--slate)', padding: '4px 8px', borderRadius: 6 }}>✕</button>
+          <button onClick={onClose} style={{ fontSize: 18, color: 'var(--slate)', padding: '4px 8px', borderRadius: 6 }}>✕</button>
         </div>
-
-        {/* Body */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
           <p style={{ fontSize: 13, color: 'var(--slate)', marginBottom: 16 }}>
             Click a section: <strong style={{ color: 'var(--pass)' }}>✓ Verify</strong> it,{' '}
-            <strong style={{ color: 'var(--red)' }}>✗ Reject</strong> it, or leave unchanged (grey = student self-reported).
+            <strong style={{ color: 'var(--red)' }}>✗ Reject</strong> it, or leave unchanged.
           </p>
-
           {['pass', 'merit', 'distinction'].map(band => (
             <div key={band} style={{ marginBottom: 20 }}>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700,
-                color: 'var(--slate)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
-                {band}
-              </div>
+                color: 'var(--slate)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>{band}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {SECTIONS.filter(s => s.band === band).map(sec => {
                   const studentDone = (student.completedSections || []).includes(sec.id)
-                  const override    = overrides[sec.id]
-                  const crit        = CRIT_COLORS[sec.criteria]
-
+                  const override = overrides[sec.id]
+                  const crit = CRIT_COLORS[sec.criteria]
                   return (
                     <div key={sec.id} style={{
-                      display: 'flex', gap: 8, alignItems: 'center',
-                      padding: '10px 12px', borderRadius: 8,
-                      background: override === true ? 'var(--pass-light)'
-                        : override === false ? 'var(--red-light)'
-                        : studentDone ? 'var(--light)' : 'var(--white)',
-                      border: `1.5px solid ${override === true ? 'var(--pass-mid)'
-                        : override === false ? '#FCA5A5'
-                        : studentDone ? 'var(--border)' : 'var(--border)'}`,
+                      display: 'flex', gap: 8, alignItems: 'center', padding: '10px 12px', borderRadius: 8,
+                      background: override === true ? 'var(--pass-light)' : override === false ? 'var(--red-light)' : studentDone ? 'var(--light)' : 'var(--white)',
+                      border: `1.5px solid ${override === true ? 'var(--pass-mid)' : override === false ? '#FCA5A5' : 'var(--border)'}`,
                     }}>
                       {crit && (
                         <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700,
@@ -141,37 +277,29 @@ function StudentModal({ student, onClose, onSave }) {
                           borderRadius: 3, padding: '1px 6px', flexShrink: 0 }}>{sec.criteria}</span>
                       )}
                       <span style={{ flex: 1, fontSize: 13, color: 'var(--navy)' }}>{sec.title}</span>
-
                       {studentDone && !override && (
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--slate)', flexShrink: 0 }}>
-                          self ✓
-                        </span>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--slate)', flexShrink: 0 }}>self ✓</span>
                       )}
-
                       <button onClick={() => toggleOverride(sec.id, true)}
                         style={{ padding: '4px 10px', borderRadius: 5, fontSize: 11, fontWeight: 700,
                           background: override === true ? 'var(--pass)' : 'var(--pass-light)',
                           color: override === true ? '#fff' : 'var(--pass)',
-                          border: `1.5px solid ${override === true ? 'var(--pass)' : 'var(--pass-mid)'}` }}>
-                        ✓
-                      </button>
+                          border: `1.5px solid ${override === true ? 'var(--pass)' : 'var(--pass-mid)'}` }}>✓</button>
                       <button onClick={() => toggleOverride(sec.id, false)}
                         style={{ padding: '4px 10px', borderRadius: 5, fontSize: 11, fontWeight: 700,
                           background: override === false ? 'var(--red)' : 'var(--red-light)',
                           color: override === false ? '#fff' : 'var(--red)',
-                          border: `1.5px solid ${override === false ? 'var(--red)' : '#FCA5A5'}` }}>
-                        ✗
-                      </button>
+                          border: `1.5px solid ${override === false ? 'var(--red)' : '#FCA5A5'}` }}>✗</button>
                     </div>
                   )
                 })}
               </div>
             </div>
           ))}
-
           <div>
-            <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)',
-              display: 'block', marginBottom: 6 }}>Note to student (shown on their homepage)</label>
+            <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)', display: 'block', marginBottom: 6 }}>
+              Note to student (shown on their homepage)
+            </label>
             <textarea value={note} onChange={e => { setNote(e.target.value); setSaved(false) }}
               placeholder="e.g. Your Section 5c needs more annotation on each post..."
               rows={3}
@@ -181,20 +309,12 @@ function StudentModal({ student, onClose, onSave }) {
               onBlur={e => e.target.style.borderColor='var(--border)'}/>
           </div>
         </div>
-
-        {/* Footer */}
         <div style={{ padding: '14px 24px', borderTop: '1px solid var(--border)',
           background: 'var(--light)', display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'flex-end' }}>
-          {saved && (
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--pass)', fontWeight: 700 }}>
-              ✓ Saved to Firebase
-            </span>
-          )}
+          {saved && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--pass)', fontWeight: 700 }}>✓ Saved</span>}
           <button onClick={onClose}
             style={{ padding: '9px 18px', border: '1.5px solid var(--border)', borderRadius: 8,
-              fontSize: 13, fontWeight: 600, color: 'var(--slate)', background: 'var(--white)' }}>
-            Close
-          </button>
+              fontSize: 13, fontWeight: 600, color: 'var(--slate)', background: 'var(--white)' }}>Close</button>
           <button onClick={handleSave} disabled={saving}
             style={{ padding: '9px 22px', background: saving ? '#94a3b8' : 'var(--navy)', color: '#fff',
               borderRadius: 8, fontSize: 13, fontWeight: 700 }}>
@@ -216,11 +336,7 @@ function EditStudentModal({ existing, onClose, onSave }) {
   const isEdit = !!existing
 
   function toggleSec(id) {
-    setCompletedIds(prev => {
-      const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
-      return next
-    })
+    setCompletedIds(prev => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next })
   }
 
   async function handleSave() {
@@ -230,11 +346,10 @@ function EditStudentModal({ existing, onClose, onSave }) {
     const completed = [...completedIds]
     const badges = checkBadges(completed, 0, 1, {})
     const xp = xpOverride ? parseInt(xpOverride) : calcXP(completed, badges)
-    const data = { name: name.trim(), completedSections: completed, xp, badges, tutorOverrides: existing?.tutorOverrides || {}, tutorNote: existing?.tutorNote || '', streak: existing?.streak || 1 }
+    const data = { name: name.trim(), completedSections: completed, xp, badges,
+      tutorOverrides: existing?.tutorOverrides || {}, tutorNote: existing?.tutorNote || '', streak: existing?.streak || 1 }
     await upsertStudent(sid, data)
-    setSaving(false)
-    onSave({ studentId: sid, ...data })
-    onClose()
+    setSaving(false); onSave({ studentId: sid, ...data }); onClose()
   }
 
   return (
@@ -247,19 +362,17 @@ function EditStudentModal({ existing, onClose, onSave }) {
         style={{ background: 'var(--white)', borderRadius: 16, width: '100%', maxWidth: 520,
           maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
           boxShadow: '0 24px 60px rgba(0,0,0,0.25)' }}>
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)',
-          display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between' }}>
           <h3 style={{ fontFamily: 'var(--font-head)', fontSize: 18, fontWeight: 900 }}>
             {isEdit ? 'Edit Student' : 'Add New Student'}
           </h3>
           <button onClick={onClose} style={{ fontSize: 18, color: 'var(--slate)' }}>✕</button>
         </div>
-
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
           {[
             { label: 'Full Name', val: name, set: setName, placeholder: 'e.g. Ayman Abdirashid' },
             { label: 'Student ID', val: studentId, set: v => setStudentId(v.toUpperCase()), placeholder: 'e.g. ABD24224712', disabled: isEdit },
-            { label: 'XP Override (optional — leave blank to auto-calculate)', val: xpOverride, set: setXpOverride, placeholder: 'e.g. 500', type: 'number' },
+            { label: 'XP Override (optional)', val: xpOverride, set: setXpOverride, placeholder: 'e.g. 500', type: 'number' },
           ].map(({ label, val, set, placeholder, disabled, type }) => (
             <div key={label}>
               <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)', display: 'block', marginBottom: 5 }}>{label}</label>
@@ -271,11 +384,8 @@ function EditStudentModal({ existing, onClose, onSave }) {
                 onBlur={e => e.target.style.borderColor='var(--border)'}/>
             </div>
           ))}
-
           <div>
-            <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)', display: 'block', marginBottom: 8 }}>
-              Completed Sections
-            </label>
+            <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)', display: 'block', marginBottom: 8 }}>Completed Sections</label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 5 }}>
               {SECTIONS.map(sec => {
                 const done = completedIds.has(sec.id)
@@ -287,19 +397,19 @@ function EditStudentModal({ existing, onClose, onSave }) {
                       background: done ? (c?.bg || 'var(--pass-light)') : 'var(--light)',
                       color: done ? (c?.text || 'var(--pass)') : 'var(--slate)',
                       fontFamily: 'var(--font-mono)', lineHeight: 1.3 }}>
-                    {sec.criteria} {sec.short.slice(0, 12)}
+                    {sec.criteria} {sec.short?.slice(0, 12)}
                   </button>
                 )
               })}
             </div>
           </div>
         </div>
-
         <div style={{ padding: '14px 24px', borderTop: '1px solid var(--border)', background: 'var(--light)',
           display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
           <button onClick={onClose}
-            style={{ padding: '9px 16px', border: '1.5px solid var(--border)', borderRadius: 8,
-              fontSize: 13, color: 'var(--slate)', background: 'var(--white)' }}>Cancel</button>
+            style={{ padding: '9px 16px', border: '1.5px solid var(--border)', borderRadius: 8, fontSize: 13, color: 'var(--slate)', background: 'var(--white)' }}>
+            Cancel
+          </button>
           <button onClick={handleSave} disabled={saving || !name.trim() || !studentId.trim()}
             style={{ padding: '9px 22px', background: 'var(--navy)', color: '#fff',
               borderRadius: 8, fontSize: 13, fontWeight: 700, opacity: (!name.trim() || !studentId.trim()) ? 0.5 : 1 }}>
@@ -335,11 +445,11 @@ function ConfirmDialog({ icon, title, message, onConfirm, onClose, requireWord }
         )}
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
           <button onClick={onClose}
-            style={{ padding: '10px 20px', border: '1.5px solid var(--border)', borderRadius: 8,
-              fontSize: 14, color: 'var(--navy)' }}>Cancel</button>
+            style={{ padding: '10px 20px', border: '1.5px solid var(--border)', borderRadius: 8, fontSize: 14, color: 'var(--navy)' }}>
+            Cancel
+          </button>
           <button onClick={onConfirm} disabled={!valid}
-            style={{ padding: '10px 24px', background: valid ? 'var(--red)' : '#94a3b8',
-              color: '#fff', borderRadius: 8, fontSize: 14, fontWeight: 700 }}>
+            style={{ padding: '10px 24px', background: valid ? 'var(--red)' : '#94a3b8', color: '#fff', borderRadius: 8, fontSize: 14, fontWeight: 700 }}>
             Confirm
           </button>
         </div>
@@ -353,8 +463,9 @@ export default function TutorDashboard({ onLogout }) {
   const [students, setStudents] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [modal, setModal] = useState(null)      // student object
-  const [editModal, setEditModal] = useState(null) // null=closed, false=new, student=edit
+  const [tab, setTab] = useState('students') // 'students' | 'leaderboard'
+  const [modal, setModal] = useState(null)
+  const [editModal, setEditModal] = useState(null)
   const [confirm, setConfirm] = useState(null)
 
   useEffect(() => {
@@ -379,7 +490,7 @@ export default function TutorDashboard({ onLogout }) {
   async function handleDelete(student) {
     setConfirm({
       icon: '🗑️', title: `Delete ${student.name}?`,
-      message: 'This permanently removes all their data from Firebase. This cannot be undone.',
+      message: 'This permanently removes all their data. Cannot be undone.',
       onConfirm: async () => {
         await fbDeleteStudent(student.studentId)
         setStudents(prev => prev.filter(s => s.studentId !== student.studentId))
@@ -391,7 +502,7 @@ export default function TutorDashboard({ onLogout }) {
   async function handleClearAll() {
     setConfirm({
       icon: '⚠️', title: 'Clear ALL student data?',
-      message: 'This resets every student\'s XP, sections, and badges to zero. Cannot be undone.',
+      message: 'Resets every student\'s XP, sections, and badges to zero. Cannot be undone.',
       requireWord: 'CLEAR',
       onConfirm: async () => {
         await clearAllData()
@@ -406,9 +517,13 @@ export default function TutorDashboard({ onLogout }) {
     s.studentId?.toLowerCase().includes(search.toLowerCase())
   )
 
-  const totalStudents = students.length
-  const submittedPass = students.filter(s => (s.xp || 0) >= PASS_XP).length
+  const totalStudents  = students.length
+  const submittedPass  = students.filter(s => (s.xp || 0) >= PASS_XP).length
   const submittedMerit = students.filter(s => (s.xp || 0) >= PASS_MERIT_XP).length
+  const behindCount    = students.filter(s => {
+    const st = getScheduleStatus(s.completedSections)
+    return st?.label === 'Behind'
+  }).length
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--light)' }}>
@@ -418,14 +533,10 @@ export default function TutorDashboard({ onLogout }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: '#fff',
             background: 'rgba(255,255,255,0.15)', padding: '3px 8px', borderRadius: 4 }}>Unit 8</span>
-          <span style={{ fontFamily: 'var(--font-head)', fontSize: 15, fontWeight: 700, color: '#fff' }}>
-            Tutor Dashboard
-          </span>
+          <span style={{ fontFamily: 'var(--font-head)', fontSize: 15, fontWeight: 700, color: '#fff' }}>Tutor Dashboard</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'rgba(255,255,255,0.5)', marginRight: 8 }}>
-            Mr Ravindu
-          </span>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'rgba(255,255,255,0.5)', marginRight: 8 }}>Mr Ravindu</span>
           <button onClick={onLogout}
             style={{ padding: '6px 14px', background: 'rgba(255,255,255,0.1)', color: '#fff',
               borderRadius: 6, fontSize: 12, fontWeight: 600, border: '1px solid rgba(255,255,255,0.15)' }}>
@@ -438,135 +549,163 @@ export default function TutorDashboard({ onLogout }) {
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 12, marginBottom: 28 }}>
           {[
-            { label: 'Total Students', val: totalStudents, color: 'var(--navy)' },
-            { label: 'On track for Pass+', val: submittedPass, color: 'var(--pass)' },
-            { label: 'On track for Merit+', val: submittedMerit, color: 'var(--merit)' },
+            { label: 'Total Students',     val: totalStudents,  color: 'var(--navy)' },
+            { label: 'On track for Pass+', val: submittedPass,  color: 'var(--pass)' },
+            { label: 'On track for Merit+',val: submittedMerit, color: 'var(--merit)' },
+            { label: 'Behind Schedule',    val: behindCount,    color: 'var(--red)' },
           ].map(stat => (
             <div key={stat.label} style={{ background: 'var(--white)', borderRadius: 12,
               padding: '16px 18px', border: '1.5px solid var(--border)' }}>
-              <div style={{ fontFamily: 'var(--font-head)', fontSize: 28, fontWeight: 900, color: stat.color }}>
-                {stat.val}
-              </div>
+              <div style={{ fontFamily: 'var(--font-head)', fontSize: 28, fontWeight: 900, color: stat.color }}>{stat.val}</div>
               <div style={{ fontSize: 12, color: 'var(--slate)', marginTop: 2 }}>{stat.label}</div>
             </div>
           ))}
         </div>
 
-        {/* Toolbar */}
-        <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
-          <input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Search student name or ID..."
-            style={{ flex: 1, minWidth: 200, padding: '9px 14px', border: '1.5px solid var(--border)',
-              borderRadius: 8, fontSize: 14 }}
-            onFocus={e => e.target.style.borderColor='var(--navy)'}
-            onBlur={e => e.target.style.borderColor='var(--border)'}/>
-          <button onClick={() => setEditModal(false)}
-            style={{ padding: '9px 18px', background: 'var(--pass)', color: '#fff',
-              borderRadius: 8, fontSize: 13, fontWeight: 700 }}>
-            + Add Student
-          </button>
-          <button onClick={handleClearAll}
-            style={{ padding: '9px 18px', background: 'var(--red-light)', color: 'var(--red)',
-              border: '1.5px solid #FCA5A5', borderRadius: 8, fontSize: 13, fontWeight: 700 }}>
-            🗑️ Clear All XP
-          </button>
+        {/* Tabs */}
+        <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: '1px solid var(--border)', paddingBottom: 0 }}>
+          {[
+            { id: 'students',     label: '👥 Students' },
+            { id: 'leaderboard',  label: '🏆 Leaderboard' },
+          ].map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              style={{
+                padding: '9px 18px', fontSize: 13, fontWeight: 700, borderRadius: '8px 8px 0 0',
+                background: tab === t.id ? 'var(--white)' : 'transparent',
+                color: tab === t.id ? 'var(--navy)' : 'var(--slate)',
+                border: tab === t.id ? '1.5px solid var(--border)' : '1.5px solid transparent',
+                borderBottom: tab === t.id ? '1.5px solid var(--white)' : '1.5px solid transparent',
+                marginBottom: tab === t.id ? -1 : 0,
+                transition: 'all 0.15s',
+              }}>
+              {t.label}
+            </button>
+          ))}
         </div>
 
-        {/* Table */}
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: 60, color: 'var(--slate)' }}>Loading...</div>
-        ) : (
-          <div style={{ background: 'var(--white)', borderRadius: 12, border: '1.5px solid var(--border)', overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ background: 'var(--light)', borderBottom: '1px solid var(--border)' }}>
-                  {['Student', 'ID', 'XP', 'Grade', 'Pass', 'Merit', 'Dist', 'Badges', ''].map(h => (
-                    <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontFamily: 'var(--font-mono)',
-                      fontSize: 11, fontWeight: 700, color: 'var(--slate)', textTransform: 'uppercase',
-                      letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((s, i) => {
-                  const { g, c } = gradeLabel(s.xp || 0)
-                  const completed = s.completedSections || []
-                  const passD  = SECTIONS.filter(x => x.band === 'pass' && completed.includes(x.id)).length
-                  const meritD = SECTIONS.filter(x => x.band === 'merit' && completed.includes(x.id)).length
-                  const distD  = SECTIONS.filter(x => x.band === 'distinction' && completed.includes(x.id)).length
-                  const passT  = SECTIONS.filter(x => x.band === 'pass').length
-                  const meritT = SECTIONS.filter(x => x.band === 'merit').length
-                  const distT  = SECTIONS.filter(x => x.band === 'distinction').length
-                  const hasRejections = Object.values(s.tutorOverrides || {}).includes(false)
+        {/* Leaderboard tab */}
+        {tab === 'leaderboard' && !loading && <LeaderboardTab students={students} />}
 
-                  return (
-                    <tr key={s.studentId}
-                      style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer',
-                        background: i % 2 === 0 ? 'var(--white)' : 'var(--light)',
-                        transition: 'background 0.1s' }}
-                      onClick={() => setModal(s)}
-                      onMouseEnter={e => e.currentTarget.style.background='#EEF2FF'}
-                      onMouseLeave={e => e.currentTarget.style.background=i%2===0?'var(--white)':'var(--light)'}>
-                      <td style={{ padding: '11px 12px' }}>
-                        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--navy)' }}>
-                          {s.name || '—'}
-                          {hasRejections && <span style={{ marginLeft: 6, fontSize: 11, color: 'var(--red)' }}>⚠️</span>}
-                        </div>
-                      </td>
-                      <td style={{ padding: '11px 12px' }}>
-                        <code style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--slate)' }}>{s.studentId}</code>
-                      </td>
-                      <td style={{ padding: '11px 12px' }}>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: 'var(--gold)' }}>
-                          {s.xp || 0}
-                        </span>
-                      </td>
-                      <td style={{ padding: '11px 12px' }}>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700,
-                          background: c + '22', color: c, padding: '2px 7px', borderRadius: 4 }}>{g}</span>
-                      </td>
-                      <td style={{ padding: '11px 12px' }}>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11,
-                          color: passD === passT ? 'var(--pass)' : 'var(--slate)' }}>
-                          {passD}/{passT}
-                        </span>
-                      </td>
-                      <td style={{ padding: '11px 12px' }}>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11,
-                          color: meritD > 0 ? 'var(--merit)' : 'var(--slate)' }}>
-                          {meritD}/{meritT}
-                        </span>
-                      </td>
-                      <td style={{ padding: '11px 12px' }}>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11,
-                          color: distD > 0 ? 'var(--dist)' : 'var(--slate)' }}>
-                          {distD}/{distT}
-                        </span>
-                      </td>
-                      <td style={{ padding: '11px 12px' }}>
-                        <span style={{ fontSize: 12, color: 'var(--slate)' }}>{(s.badges || []).length}</span>
-                      </td>
-                      <td style={{ padding: '11px 12px' }} onClick={e => e.stopPropagation()}>
-                        <button onClick={() => setEditModal(s)}
-                          style={{ fontSize: 13, padding: '3px 8px', borderRadius: 5,
-                            background: '#EEF2FF', color: '#6366F1', marginRight: 4, fontWeight: 700 }}>✏️</button>
-                        <button onClick={() => handleDelete(s)}
-                          style={{ fontSize: 13, padding: '3px 8px', borderRadius: 5,
-                            background: 'var(--red-light)', color: 'var(--red)', fontWeight: 700 }}>🗑️</button>
-                      </td>
+        {/* Students tab */}
+        {tab === 'students' && (
+          <>
+            <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+              <input value={search} onChange={e => setSearch(e.target.value)}
+                placeholder="Search student name or ID..."
+                style={{ flex: 1, minWidth: 200, padding: '9px 14px', border: '1.5px solid var(--border)', borderRadius: 8, fontSize: 14 }}
+                onFocus={e => e.target.style.borderColor='var(--navy)'}
+                onBlur={e => e.target.style.borderColor='var(--border)'}/>
+              <button onClick={() => setEditModal(false)}
+                style={{ padding: '9px 18px', background: 'var(--pass)', color: '#fff', borderRadius: 8, fontSize: 13, fontWeight: 700 }}>
+                + Add Student
+              </button>
+              <button onClick={handleClearAll}
+                style={{ padding: '9px 18px', background: 'var(--red-light)', color: 'var(--red)',
+                  border: '1.5px solid #FCA5A5', borderRadius: 8, fontSize: 13, fontWeight: 700 }}>
+                🗑️ Clear All XP
+              </button>
+            </div>
+
+            {loading ? (
+              <div style={{ textAlign: 'center', padding: 60, color: 'var(--slate)' }}>Loading...</div>
+            ) : (
+              <div style={{ background: 'var(--white)', borderRadius: 12, border: '1.5px solid var(--border)', overflow: 'hidden' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ background: 'var(--light)', borderBottom: '1px solid var(--border)' }}>
+                      {['Student', 'ID', 'XP', 'Grade', 'Pass', 'Merit', 'Dist', 'Badges', 'Status', ''].map(h => (
+                        <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontFamily: 'var(--font-mono)',
+                          fontSize: 11, fontWeight: 700, color: 'var(--slate)', textTransform: 'uppercase',
+                          letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{h}</th>
+                      ))}
                     </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-            {filtered.length === 0 && (
-              <div style={{ padding: 40, textAlign: 'center', color: 'var(--slate)' }}>No students found.</div>
+                  </thead>
+                  <tbody>
+                    {filtered.map((s, i) => {
+                      const { g, c } = gradeLabel(s.xp || 0)
+                      const completed = s.completedSections || []
+                      const passD  = SECTIONS.filter(x => x.band === 'pass' && completed.includes(x.id)).length
+                      const meritD = SECTIONS.filter(x => x.band === 'merit' && completed.includes(x.id)).length
+                      const distD  = SECTIONS.filter(x => x.band === 'distinction' && completed.includes(x.id)).length
+                      const passT  = SECTIONS.filter(x => x.band === 'pass').length
+                      const meritT = SECTIONS.filter(x => x.band === 'merit').length
+                      const distT  = SECTIONS.filter(x => x.band === 'distinction').length
+                      const hasRejections = Object.values(s.tutorOverrides || {}).includes(false)
+                      const schedStatus = getScheduleStatus(completed)
+
+                      return (
+                        <tr key={s.studentId}
+                          style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer',
+                            background: i % 2 === 0 ? 'var(--white)' : 'var(--light)', transition: 'background 0.1s' }}
+                          onClick={() => setModal(s)}
+                          onMouseEnter={e => e.currentTarget.style.background='#EEF2FF'}
+                          onMouseLeave={e => e.currentTarget.style.background=i%2===0?'var(--white)':'var(--light)'}>
+                          <td style={{ padding: '11px 12px' }}>
+                            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--navy)' }}>
+                              {s.name || '—'}
+                              {hasRejections && <span style={{ marginLeft: 6, fontSize: 11, color: 'var(--red)' }}>⚠️</span>}
+                            </div>
+                          </td>
+                          <td style={{ padding: '11px 12px' }}>
+                            <code style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--slate)' }}>{s.studentId}</code>
+                          </td>
+                          <td style={{ padding: '11px 12px' }}>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: 'var(--gold)' }}>{s.xp || 0}</span>
+                          </td>
+                          <td style={{ padding: '11px 12px' }}>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700,
+                              background: c + '22', color: c, padding: '2px 7px', borderRadius: 4 }}>{g}</span>
+                          </td>
+                          <td style={{ padding: '11px 12px' }}>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: passD === passT ? 'var(--pass)' : 'var(--slate)' }}>
+                              {passD}/{passT}
+                            </span>
+                          </td>
+                          <td style={{ padding: '11px 12px' }}>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: meritD > 0 ? 'var(--merit)' : 'var(--slate)' }}>
+                              {meritD}/{meritT}
+                            </span>
+                          </td>
+                          <td style={{ padding: '11px 12px' }}>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: distD > 0 ? 'var(--dist)' : 'var(--slate)' }}>
+                              {distD}/{distT}
+                            </span>
+                          </td>
+                          <td style={{ padding: '11px 12px' }}>
+                            <span style={{ fontSize: 12, color: 'var(--slate)' }}>{(s.badges || []).length}</span>
+                          </td>
+                          <td style={{ padding: '11px 12px' }}>
+                            {schedStatus && (
+                              <span style={{
+                                fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700,
+                                background: schedStatus.bg, color: schedStatus.color,
+                                border: `1px solid ${schedStatus.border}`,
+                                padding: '2px 7px', borderRadius: 4, whiteSpace: 'nowrap',
+                              }}>{schedStatus.label}</span>
+                            )}
+                          </td>
+                          <td style={{ padding: '11px 12px' }} onClick={e => e.stopPropagation()}>
+                            <button onClick={() => setEditModal(s)}
+                              style={{ fontSize: 13, padding: '3px 8px', borderRadius: 5,
+                                background: '#EEF2FF', color: '#6366F1', marginRight: 4, fontWeight: 700 }}>✏️</button>
+                            <button onClick={() => handleDelete(s)}
+                              style={{ fontSize: 13, padding: '3px 8px', borderRadius: 5,
+                                background: 'var(--red-light)', color: 'var(--red)', fontWeight: 700 }}>🗑️</button>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+                {filtered.length === 0 && (
+                  <div style={{ padding: 40, textAlign: 'center', color: 'var(--slate)' }}>No students found.</div>
+                )}
+              </div>
             )}
-          </div>
+          </>
         )}
       </div>
 
-      {/* Modals */}
       <AnimatePresence>
         {modal && <StudentModal student={modal} onClose={() => setModal(null)} onSave={updated => { handleOverrideSave(updated); setModal(null) }} />}
       </AnimatePresence>
