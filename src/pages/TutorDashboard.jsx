@@ -4,7 +4,7 @@ import {
   getAllStudents, saveTutorOverrides, upsertStudent,
   deleteStudent as fbDeleteStudent, clearAllData
 } from '../lib/firebase'
-import { SECTIONS, BADGES, TOTAL_XP, PASS_XP, PASS_MERIT_XP, calcXP, calcMilestoneBonus, calcEarlyBonus, calcVerifiedXP, checkBadges, WEEKS_DATA } from '../data/gameData'
+import { SECTIONS, BADGES, TOTAL_XP, PASS_XP, PASS_MERIT_XP, calcXP, calcMilestoneBonus, calcEarlyBonus, calcVerifiedXP, checkBadges, WEEKS_DATA, STUDENT_GROUPS, STUDENT_ROSTER } from '../data/gameData'
 
 const CRIT_COLORS = {
   P3: { bg: '#d4edda', border: '#74c38a', text: '#155724' },
@@ -730,6 +730,7 @@ export default function TutorDashboard({ onLogout }) {
   const [students, setStudents] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [groupFilter, setGroupFilter] = useState('all')
   const [tab, setTab] = useState('students') // 'students' | 'leaderboard'
   const [modal, setModal] = useState(null)
   const [breakdown, setBreakdown] = useState(null)
@@ -859,10 +860,12 @@ export default function TutorDashboard({ onLogout }) {
     })
   }
 
-  const filtered = students.filter(s =>
-    !search || s.name?.toLowerCase().includes(search.toLowerCase()) ||
-    s.studentId?.toLowerCase().includes(search.toLowerCase())
-  )
+  const filtered = students.filter(s => {
+    if (groupFilter !== 'all' && STUDENT_GROUPS[s.studentId] !== groupFilter) return false
+    if (!search) return true
+    return s.name?.toLowerCase().includes(search.toLowerCase()) ||
+      s.studentId?.toLowerCase().includes(search.toLowerCase())
+  })
 
   const totalStudents  = students.length
   const submittedPass  = students.filter(s => (s.xp || 0) >= PASS_XP).length
@@ -936,6 +939,30 @@ export default function TutorDashboard({ onLogout }) {
         {/* Students tab */}
         {tab === 'students' && (
           <>
+            {/* Group filter */}
+            <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+              {['all', 'A', 'B', 'C'].map(g => {
+                const rosterTotal = g === 'all' ? Object.keys(STUDENT_ROSTER).filter(id => id !== 'TEST').length
+                  : Object.entries(STUDENT_GROUPS).filter(([,v]) => v === g).length
+                const registered = g === 'all' ? students.length
+                  : students.filter(s => STUDENT_GROUPS[s.studentId] === g).length
+                return (
+                  <button key={g} onClick={() => setGroupFilter(g)}
+                    style={{
+                      padding: '6px 16px', borderRadius: 6, fontSize: 12, fontWeight: 700,
+                      background: groupFilter === g ? 'var(--navy)' : 'var(--white)',
+                      color: groupFilter === g ? '#fff' : 'var(--slate)',
+                      border: `1.5px solid ${groupFilter === g ? 'var(--navy)' : 'var(--border)'}`,
+                      transition: 'all 0.15s', whiteSpace: 'nowrap',
+                    }}>
+                    {g === 'all' ? 'All' : `Group ${g}`}
+                    <span style={{ marginLeft: 6, fontWeight: 400, opacity: 0.8 }}>
+                      {registered}/{rosterTotal}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
             <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
               <input value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="Search student name or ID..."
@@ -975,7 +1002,7 @@ export default function TutorDashboard({ onLogout }) {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr style={{ background: 'var(--light)', borderBottom: '1px solid var(--border)' }}>
-                      {['Student', 'ID', 'XP', 'Grade', 'Pass', 'Merit', 'Dist', 'Badges', 'Streak', 'Status', ''].map(h => (
+                      {['Student', 'ID', 'Group', 'XP', 'Grade', 'Pass', 'Merit', 'Dist', 'Badges', 'Streak', 'Status', ''].map(h => (
                         <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontFamily: 'var(--font-mono)',
                           fontSize: 11, fontWeight: 700, color: 'var(--slate)', textTransform: 'uppercase',
                           letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{h}</th>
@@ -1011,6 +1038,20 @@ export default function TutorDashboard({ onLogout }) {
                           </td>
                           <td style={{ padding: '11px 12px' }}>
                             <code style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--slate)' }}>{s.studentId}</code>
+                          </td>
+                          <td style={{ padding: '11px 12px' }}>
+                            {(() => {
+                              const g = STUDENT_GROUPS[s.studentId]
+                              const gc = g === 'A' ? { bg: '#DBEAFE', color: '#1D4ED8', border: '#BFDBFE' }
+                                       : g === 'B' ? { bg: '#F3E8FF', color: '#6D28D9', border: '#DDD6FE' }
+                                       : g === 'C' ? { bg: '#D1FAE5', color: '#065F46', border: '#6EE7B7' }
+                                       : null
+                              return g ? (
+                                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700,
+                                  background: gc.bg, color: gc.color, border: `1px solid ${gc.border}`,
+                                  padding: '2px 8px', borderRadius: 4, whiteSpace: 'nowrap' }}>Grp {g}</span>
+                              ) : <span style={{ color: 'var(--slate)', fontSize: 11 }}>—</span>
+                            })()}
                           </td>
                           <td style={{ padding: '11px 12px' }}>
                             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: 'var(--gold)' }}>
