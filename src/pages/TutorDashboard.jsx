@@ -79,6 +79,7 @@ function XPBreakdownModal({ student, onClose }) {
   const earnedBadges = BADGES.filter(b => (student.badges || []).includes(b.id))
   const earlyBonuses = student.earlyBonuses || {}
   const verifyTimestamps = student.verifyTimestamps || {}
+  const completedTimestamps = student.completedTimestamps || {}
 
   const baseXP = verified.reduce((a, s) => a + s.xp, 0)
   const badgeXP = earnedBadges.reduce((a, b) => a + b.xpBonus, 0)
@@ -179,11 +180,14 @@ function XPBreakdownModal({ student, onClose }) {
                         background: bg, border: `1px solid ${border}`, borderRadius: 8, padding: '9px 12px' }}>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--navy)' }}>{sec.title}</div>
-                          {ts && (
-                            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--slate)', marginTop: 2 }}>
-                              ✓ Verified {formatDate(ts)}
-                            </div>
-                          )}
+                          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--slate)', marginTop: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            {completedTimestamps[sec.id] && (
+                              <span>📝 Submitted {formatDate(completedTimestamps[sec.id])}</span>
+                            )}
+                            {ts && (
+                              <span>✓ Verified {formatDate(ts)}</span>
+                            )}
+                          </div>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                           {earlyLabel && (
@@ -294,7 +298,7 @@ function LeaderboardTab({ students }) {
 
           return (
             <div key={s.studentId}
-              onClick={() => setBreakdown(s)}
+              onClick={() => setBreakdown({...s, completedTimestamps: s.completedTimestamps || {}})}
               onMouseEnter={e => e.currentTarget.style.boxShadow='var(--shadow-md)'}
               onMouseLeave={e => e.currentTarget.style.boxShadow='none'}
               style={{
@@ -1010,7 +1014,7 @@ export default function TutorDashboard({ onLogout }) {
                             )}
                           </td>
                           <td style={{ padding: '11px 12px' }} onClick={e => e.stopPropagation()}>
-                            <button onClick={() => setBreakdown(s)}
+                            <button onClick={() => setBreakdown({...s, completedTimestamps: s.completedTimestamps || {}})}
                               style={{ fontSize: 13, padding: '3px 8px', borderRadius: 5,
                                 background: '#f0fdf4', color: 'var(--pass)', marginRight: 4, fontWeight: 700 }}>📊</button>
                             <button onClick={() => setEditModal(s)}

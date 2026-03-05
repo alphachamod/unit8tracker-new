@@ -10,6 +10,7 @@ function XPBreakdownModal({ student, isMe, onClose }) {
   const earnedBadges = BADGES.filter(b => (student.badges || []).includes(b.id))
   const earlyBonuses = student.earlyBonuses || {}
   const verifyTimestamps = student.verifyTimestamps || {}
+  const completedTimestamps = student.completedTimestamps || {}
 
   const baseXP = verified.reduce((a, s) => a + s.xp, 0)
   const badgeXP = earnedBadges.reduce((a, b) => a + b.xpBonus, 0)
@@ -107,9 +108,10 @@ function XPBreakdownModal({ student, isMe, onClose }) {
                         background: bg, border: `1px solid ${border}`, borderRadius: 8, padding: '9px 12px' }}>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--navy)' }}>{sec.title}</div>
-                          {isMe && ts && (
-                            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--slate)', marginTop: 2 }}>
-                              ✓ {formatDate(ts)}
+                          {isMe && (
+                            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--slate)', marginTop: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                              {completedTimestamps[sec.id] && <span>📝 Submitted {formatDate(completedTimestamps[sec.id])}</span>}
+                              {ts && <span>✓ Verified {formatDate(ts)}</span>}
                             </div>
                           )}
                         </div>
@@ -393,7 +395,7 @@ export default function LeaderboardPage({ student }) {
             return (
               <motion.div key={s.studentId} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.02 }}
-                onClick={() => setBreakdown(s)}
+                onClick={() => setBreakdown({...s, completedTimestamps: s.completedTimestamps || {}})}
                 onMouseEnter={e => e.currentTarget.style.boxShadow = 'var(--shadow-md)'}
                 onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
                 style={{

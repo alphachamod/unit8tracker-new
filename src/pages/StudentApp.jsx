@@ -11,7 +11,6 @@ import ResourcesPage from './student/ResourcesPage'
 import FAQPage from './student/FAQPage'
 import SectionPopup from '../components/SectionPopup'
 import Toast from '../components/Toast'
-import LoadingScreen from '../components/LoadingScreen'
 
 const NAV_ITEMS = [
   { id:'home', label:'Home', emoji:'🏠' },
@@ -28,7 +27,6 @@ export default function StudentApp({ student, setStudent, onLogout }) {
   const [popup, setPopup] = useState(null)
   const [toast, setToast] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [pageLoading, setPageLoading] = useState(false)
   const syncTimer = useRef(null)
 
   // FIX 1: Pull fresh data on mount AND recalculate XP from server state
@@ -119,18 +117,13 @@ export default function StudentApp({ student, setStudent, onLogout }) {
 
   function navigateTo(newPage) {
     if (newPage === page) return
-    setPageLoading(true)
-    setTimeout(() => {
-      setPage(newPage)
-      setPageLoading(false)
-    }, 400)
+    setMenuOpen(false)
+    setPage(newPage)
   }
 
   const firstName = student.name?.split(' ')[0] || 'Student'
   const xp = student.xp || 0
   const grade = xp >= TOTAL_XP ? 'D' : xp >= PASS_MERIT_XP ? 'M' : xp >= PASS_XP ? 'P' : '—'
-
-  if (pageLoading) return <LoadingScreen message='Loading...' />
 
   return (
     <div style={{ minHeight:'100vh', background:'var(--light)' }}>
