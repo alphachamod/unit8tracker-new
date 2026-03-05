@@ -270,6 +270,276 @@ function XPBreakdownModal({ student, onClose }) {
 }
 
 // ─── Leaderboard tab ───────────────────────────────────────────
+// ─── Progress Tab ─────────────────────────────────────────────
+function ProgressTab({ students }) {
+  const [groupFilter, setGroupFilter] = useState('all')
+  const [search, setSearch] = useState('')
+  const now = new Date()
+
+  // Figure out current week index (0-based), capped at last week
+  const currentWeekIdx = (() => {
+    const idx = WEEKS_DATA.findIndex(w =>
+      now >= new Date(w.start) && now <= new Date(w.end + 'T23:59:59')
+    )
+    return idx === -1 ? WEEKS_DATA.length - 1 : idx
+  })()
+
+  // For each week, get the section IDs expected by end of that week
+  const weekSectionIds = WEEKS_DATA.map(week =>
+    SECTIONS.filter(s =>
+      week.items.some(item => item.criteria === s.criteria)
+    ).map(s => s.id)
+  )
+
+  // Days elapsed in current week (0–6)
+  const currentWeekStart = new Date(WEEKS_DATA[currentWeekIdx]?.start)
+  const currentWeekEnd   = new Date(WEEKS_DATA[currentWeekIdx]?.end + 'T23:59:59')
+  const weekDayProgress  = Math.min(1, (now - currentWeekStart) / (currentWeekEnd - currentWeekStart))
+
+  const filtered = students.filter(s => {
+    if (groupFilter !== 'all' && STUDENT_GROUPS[s.studentId] !== groupFilter) return false
+    if (!search) return true
+    return s.name?.toLowerCase().includes(search.toLowerCase()) ||
+      s.studentId?.toLowerCase().includes(search.toLowerCase())
+  }).sort((a, b) => {
+    const aD = (a.completedSections || []).length
+    const bD = (b.completedSections || []).length
+    return bD - aD
+  })
+
+  const TOTAL_SECTIONS = SECTIONS.length
+
+  function getStudentWeekStatus(completed, weekIdx) {
+    const ids = weekSectionIds[weekIdx] || []
+    if (ids.length === 0) return 'none'
+    const done = ids.filter(id => completed.includes(id)).length
+    const ratio = done / ids.length
+    const weekEnd = new Date(WEEKS_DATA[weekIdx].end + 'T23:59:59')
+    const isPast = now > weekEnd
+    const isCurrent = weekIdx === currentWeekIdx
+
+    if (ratio === 1) return 'complete'
+    if (ratio >= 0.5) return isCurrent || isPast ? 'partial' : 'ahead'
+    if (ratio > 0)    return isCurrent ? 'started' : isPast ? 'behind' : 'future'
+    if (isPast)       return 'missing'
+    if (isCurrent)    return 'notstarted'
+    return 'future'
+  }
+
+  const weekStatusStyles = {
+    complete:   { bg: '#22c55e', label: '✓' },
+    partial:    { bg: '#f59e0b', label: '~' },
+    ahead:      { bg: '#86efac', label: '~' },
+    started:    { bg: '#fbbf24', label: '…' },
+    behind:     { bg: '#ef4444', label: '!' },
+    missing:    { bg: '#fca5a5', label: '✗' },
+    notstarted: { bg: '#e2e8f0', label: '' },
+    future:     { bg: '#f1f5f9', label: '' },
+    none:       { bg: 'transparent', label: '' },
+  }
+
+  // Summary stats
+  const onTrack  = filtered.filter(s => ['On Track','Ahead'].includes(getScheduleStatus(s.completedSections)?.label)).length
+  const behind   = filtered.filter(s => getScheduleStatus(s.completedSections)?.label === 'Behind').length
+  const complete = filtered.filter(s => (s.completedSections||[]).length === TOTAL_SECTIONS).length
+
+  return (
+    <div>
+      {/* Summary cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px,1fr))', gap: 10, marginBottom: 20 }}>
+        {[
+          { label: 'On Track / Ahead', val: onTrack,  color: 'var(--pass)' },
+          { label: 'Behind',           val: behind,   color: 'var(--red)' },
+          { label: 'All sections done',val: complete, color: 'var(--dist)' },
+          { label: 'Showing',          val: filtered.length, color: 'var(--navy)' },
+        ].map(c => (
+          <div key={c.label} style={{ background: 'var(--white)', border: '1.5px solid var(--border)', borderRadius: 10, padding: '12px 16px' }}>
+            <div style={{ fontFamily: 'var(--font-head)', fontSize: 24, fontWeight: 900, color: c.color }}>{c.val}</div>
+            <div style={{ fontSize: 11, color: 'var(--slate)', marginTop: 2 }}>{c.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Filters */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+        {['all','A','B','C'].map(g => (
+          <button key={g} onClick={() => setGroupFilter(g)}
+            style={{ padding: '5px 14px', borderRadius: 6, fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap',
+              background: groupFilter === g ? 'var(--navy)' : 'var(--white)',
+              color: groupFilter === g ? '#fff' : 'var(--slate)',
+              border: `1.5px solid ${groupFilter === g ? 'var(--navy)' : 'var(--border)'}` }}>
+            {g === 'all' ? `All (${students.length})` : `Grp ${g} (${students.filter(s => STUDENT_GROUPS[s.studentId] === g).length})`}
+          </button>
+        ))}
+        <input value={search} onChange={e => setSearch(e.target.value)}
+          placeholder="Search..."
+          style={{ marginLeft: 'auto', padding: '6px 12px', border: '1.5px solid var(--border)', borderRadius: 8, fontSize: 13, minWidth: 160 }}/>
+      </div>
+
+      {/* Week header */}
+      <div style={{ background: 'var(--white)', borderRadius: 12, border: '1.5px solid var(--border)', overflow: 'hidden' }}>
+        {/* Week labels row */}
+        <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr 200px', borderBottom: '2px solid var(--border)', background: 'var(--light)' }}>
+          <div style={{ padding: '10px 16px', fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700, color: 'var(--slate)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Student
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${WEEKS_DATA.length}, 1fr)`, borderLeft: '1px solid var(--border)' }}>
+            {WEEKS_DATA.map((w, i) => (
+              <div key={i} style={{
+                padding: '8px 6px', textAlign: 'center', borderRight: i < WEEKS_DATA.length - 1 ? '1px solid var(--border)' : 'none',
+                background: i === currentWeekIdx ? '#EEF2FF' : 'transparent',
+              }}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, color: i === currentWeekIdx ? '#4F46E5' : 'var(--slate)' }}>
+                  {w.label}
+                </div>
+                <div style={{ fontSize: 10, color: 'var(--slate)', opacity: 0.7, marginTop: 1 }}>{w.dates}</div>
+                {i === currentWeekIdx && (
+                  <div style={{ marginTop: 4, height: 3, background: '#e2e8f0', borderRadius: 2, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${weekDayProgress * 100}%`, background: '#4F46E5', borderRadius: 2 }}/>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          <div style={{ padding: '10px 16px', fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700, color: 'var(--slate)', textTransform: 'uppercase', letterSpacing: '0.05em', borderLeft: '1px solid var(--border)' }}>
+            Overall Progress
+          </div>
+        </div>
+
+        {/* Student rows */}
+        {filtered.length === 0 && (
+          <div style={{ padding: 40, textAlign: 'center', color: 'var(--slate)' }}>No students found.</div>
+        )}
+        {filtered.map((s, rowIdx) => {
+          const completed = s.completedSections || []
+          const verifiedIds = Object.entries(s.tutorOverrides || {}).filter(([,v]) => v === true).map(([k]) => k)
+          const totalDone = completed.length
+          const totalVerified = verifiedIds.length
+          const sectionPct = totalDone / TOTAL_SECTIONS
+          const verifiedPct = totalVerified / TOTAL_SECTIONS
+          const schedStatus = getScheduleStatus(completed)
+          const group = STUDENT_GROUPS[s.studentId]
+          const groupColor = group === 'A' ? '#1D4ED8' : group === 'B' ? '#6D28D9' : group === 'C' ? '#065F46' : 'var(--slate)'
+          const groupBg    = group === 'A' ? '#DBEAFE' : group === 'B' ? '#F3E8FF' : group === 'C' ? '#D1FAE5' : 'var(--light)'
+
+          return (
+            <div key={s.studentId} style={{
+              display: 'grid', gridTemplateColumns: '220px 1fr 200px',
+              borderBottom: rowIdx < filtered.length - 1 ? '1px solid var(--border)' : 'none',
+              background: rowIdx % 2 === 0 ? 'var(--white)' : '#fafbfc',
+            }}>
+              {/* Name cell */}
+              <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 4 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>{s.name}</span>
+                  {group && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, background: groupBg, color: groupColor, padding: '1px 5px', borderRadius: 3, whiteSpace: 'nowrap' }}>{group}</span>}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {schedStatus && (
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700,
+                      background: schedStatus.bg, color: schedStatus.color, border: `1px solid ${schedStatus.border}`,
+                      padding: '1px 6px', borderRadius: 3, whiteSpace: 'nowrap' }}>{schedStatus.label}</span>
+                  )}
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--slate)' }}>
+                    {totalDone}/{TOTAL_SECTIONS} done · {totalVerified} verified
+                  </span>
+                </div>
+              </div>
+
+              {/* Week cells */}
+              <div style={{ display: 'grid', gridTemplateColumns: `repeat(${WEEKS_DATA.length}, 1fr)`, borderLeft: '1px solid var(--border)' }}>
+                {WEEKS_DATA.map((w, wi) => {
+                  const ids = weekSectionIds[wi] || []
+                  const doneSections = ids.filter(id => completed.includes(id))
+                  const verifiedSections = ids.filter(id => verifiedIds.includes(id))
+                  const status = getStudentWeekStatus(completed, wi)
+                  const { bg } = weekStatusStyles[status]
+                  const pct = ids.length > 0 ? doneSections.length / ids.length : 0
+                  const vPct = ids.length > 0 ? verifiedSections.length / ids.length : 0
+
+                  return (
+                    <div key={wi} title={`${w.label}: ${doneSections.length}/${ids.length} done, ${verifiedSections.length} verified`}
+                      style={{
+                        padding: '10px 8px', borderRight: wi < WEEKS_DATA.length - 1 ? '1px solid var(--border)' : 'none',
+                        background: wi === currentWeekIdx ? '#F5F3FF' : 'transparent',
+                        display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 5,
+                      }}>
+                      {ids.length > 0 ? (
+                        <>
+                          {/* Self-reported bar */}
+                          <div style={{ height: 8, background: '#e2e8f0', borderRadius: 4, overflow: 'hidden', position: 'relative' }}>
+                            <div style={{ position: 'absolute', inset: 0, width: `${pct * 100}%`, background: bg, borderRadius: 4, transition: 'width 0.3s' }}/>
+                          </div>
+                          {/* Verified bar */}
+                          <div style={{ height: 4, background: '#e2e8f0', borderRadius: 4, overflow: 'hidden' }}>
+                            <div style={{ height: '100%', width: `${vPct * 100}%`, background: 'var(--pass)', borderRadius: 4, transition: 'width 0.3s' }}/>
+                          </div>
+                          {/* Count */}
+                          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--slate)', textAlign: 'center' }}>
+                            {doneSections.length}/{ids.length}
+                            {verifiedSections.length > 0 && <span style={{ color: 'var(--pass)', marginLeft: 3 }}>✓{verifiedSections.length}</span>}
+                          </div>
+                        </>
+                      ) : (
+                        <div style={{ fontSize: 9, color: 'var(--slate)', textAlign: 'center', opacity: 0.4 }}>—</div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Overall progress cell */}
+              <div style={{ padding: '12px 16px', borderLeft: '1px solid var(--border)', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 6 }}>
+                {/* Sections bar */}
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                    <span style={{ fontSize: 10, color: 'var(--slate)' }}>Sections</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, color: 'var(--navy)' }}>{Math.round(sectionPct * 100)}%</span>
+                  </div>
+                  <div style={{ height: 8, background: '#e2e8f0', borderRadius: 4, overflow: 'hidden', position: 'relative' }}>
+                    <div style={{ position: 'absolute', inset: 0, width: `${verifiedPct * 100}%`, background: 'var(--pass)', borderRadius: 4 }}/>
+                    <div style={{ position: 'absolute', inset: 0, left: `${verifiedPct * 100}%`, width: `${(sectionPct - verifiedPct) * 100}%`, background: '#93c5fd', borderRadius: '0 4px 4px 0' }}/>
+                  </div>
+                </div>
+                {/* XP bar */}
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                    <span style={{ fontSize: 10, color: 'var(--slate)' }}>XP</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, color: 'var(--gold)' }}>{s.xp || 0}</span>
+                  </div>
+                  <div style={{ height: 6, background: '#e2e8f0', borderRadius: 4, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${Math.min(1, (s.xp || 0) / TOTAL_XP) * 100}%`, background: 'var(--gold)', borderRadius: 4 }}/>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+
+        {/* Legend */}
+        <div style={{ padding: '10px 16px', background: 'var(--light)', borderTop: '1px solid var(--border)', display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+          <span style={{ fontSize: 11, color: 'var(--slate)', fontWeight: 700 }}>Legend:</span>
+          {[
+            { color: '#22c55e', label: 'Complete' },
+            { color: '#f59e0b', label: 'Partial / In progress' },
+            { color: '#ef4444', label: 'Behind / Missing' },
+            { color: '#e2e8f0', label: 'Not started yet' },
+          ].map(l => (
+            <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <div style={{ width: 12, height: 8, background: l.color, borderRadius: 2 }}/>
+              <span style={{ fontSize: 11, color: 'var(--slate)' }}>{l.label}</span>
+            </div>
+          ))}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginLeft: 8 }}>
+            <div style={{ width: 12, height: 4, background: 'var(--pass)', borderRadius: 2 }}/>
+            <span style={{ fontSize: 11, color: 'var(--slate)' }}>Verified (thin bar)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function LeaderboardTab({ students }) {
   const [breakdown, setBreakdown] = useState(null)
   const sorted = [...students].sort((a, b) => getVerifiedXP(b) - getVerifiedXP(a))
@@ -916,6 +1186,7 @@ export default function TutorDashboard({ onLogout }) {
         <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: '1px solid var(--border)', paddingBottom: 0 }}>
           {[
             { id: 'students',     label: '👥 Students' },
+            { id: 'progress',     label: '📈 Progress' },
             { id: 'leaderboard',  label: '🏆 Leaderboard' },
           ].map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
@@ -935,6 +1206,7 @@ export default function TutorDashboard({ onLogout }) {
 
         {/* Leaderboard tab */}
         {tab === 'leaderboard' && !loading && <LeaderboardTab students={students} />}
+        {tab === 'progress'    && !loading && <ProgressTab students={students} />}
 
         {/* Students tab */}
         {tab === 'students' && (
