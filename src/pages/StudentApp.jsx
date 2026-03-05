@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { saveProgress, getStudent } from '../lib/firebase'
-import { SECTIONS, BADGES, TOTAL_XP, PASS_XP, PASS_MERIT_XP, calcXP, checkBadges, SECTION_POPUPS, DEADLINE, START_DATE } from '../data/gameData'
+import { SECTIONS, BADGES, TOTAL_XP, PASS_XP, PASS_MERIT_XP, calcXP, calcMilestoneBonus, checkBadges, SECTION_POPUPS, DEADLINE, START_DATE } from '../data/gameData'
 import HomePage from './student/HomePage'
 import TimelinePage from './student/TimelinePage'
 import SectionsPage from './student/SectionsPage'
@@ -49,6 +49,7 @@ export default function StudentApp({ student, setStudent, onLogout }) {
         xp: data.xp,
         badges: data.badges,
         completedTimestamps: data.completedTimestamps || {},
+        milestoneBonus: data.milestoneBonus || 0,
       }).catch(() => {})
     }, 1500)
   }, [])
@@ -95,9 +96,11 @@ export default function StudentApp({ student, setStudent, onLogout }) {
       const allBadges    = [...new Set([...prevBadgeIds, ...newBadgeIds])]
 
       // Always recalculate from scratch — never accumulate on top of old value
-      const newXP = calcXP(newCompleted, allBadges)
+      // Lock in milestone bonus — never recalculate downward
+      const newMilestone = calcMilestoneBonus(newCompleted, prev.milestoneBonus || 0)
+      const newXP = calcXP(newCompleted, allBadges, prev.earlyBonuses || {}, newMilestone)
 
-      const updated = { ...prev, completedSections: newCompleted, xp: newXP, badges: allBadges, completedTimestamps: newTimestamps }
+      const updated = { ...prev, completedSections: newCompleted, xp: newXP, badges: allBadges, completedTimestamps: newTimestamps, milestoneBonus: newMilestone }
       scheduleSync(updated)
 
       if (!alreadyDone) {

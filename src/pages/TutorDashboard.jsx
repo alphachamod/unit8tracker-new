@@ -4,7 +4,7 @@ import {
   getAllStudents, saveTutorOverrides, upsertStudent,
   deleteStudent as fbDeleteStudent, clearAllData
 } from '../lib/firebase'
-import { SECTIONS, BADGES, TOTAL_XP, PASS_XP, PASS_MERIT_XP, calcXP, calcEarlyBonus, calcVerifiedXP, checkBadges, WEEKS_DATA } from '../data/gameData'
+import { SECTIONS, BADGES, TOTAL_XP, PASS_XP, PASS_MERIT_XP, calcXP, calcMilestoneBonus, calcEarlyBonus, calcVerifiedXP, checkBadges, WEEKS_DATA } from '../data/gameData'
 
 const CRIT_COLORS = {
   P3: { bg: '#d4edda', border: '#74c38a', text: '#155724' },
@@ -83,9 +83,11 @@ function XPBreakdownModal({ student, onClose }) {
 
   const baseXP = verified.reduce((a, s) => a + s.xp, 0)
   const badgeXP = earnedBadges.reduce((a, b) => a + b.xpBonus, 0)
-  const earlyXP = Object.values(earlyBonuses).reduce((a, v) => a + v, 0)
-  const totalVerifiedXP = baseXP + badgeXP + earlyXP
-
+  // Only count early bonuses for verified sections
+  const earlyXP = Object.entries(earlyBonuses)
+    .filter(([id]) => student.tutorOverrides?.[id] === true)
+    .reduce((a, [, v]) => a + v, 0)
+  const totalVerifiedXP = calcVerifiedXP(student.completedSections, student.badges, student.tutorOverrides, earlyBonuses)
   const bandColors = {
     pass: { color: 'var(--pass)', bg: 'var(--pass-light)', border: 'var(--pass-mid)' },
     merit: { color: 'var(--merit)', bg: '#fffbeb', border: '#FCD34D' },
@@ -270,7 +272,7 @@ function XPBreakdownModal({ student, onClose }) {
 // ─── Leaderboard tab ───────────────────────────────────────────
 function LeaderboardTab({ students }) {
   const [breakdown, setBreakdown] = useState(null)
-  const sorted = [...students].sort((a, b) => (b.xp || 0) - (a.xp || 0))
+  const sorted = [...students].sort((a, b) => getVerifiedXP(b) - getVerifiedXP(a))
 
   return (
     <div>
@@ -564,8 +566,19 @@ function StudentModal({ student, onClose, onSave }) {
           </div>
         </div>
         <div style={{ padding: '14px 24px', borderTop: '1px solid var(--border)',
-          background: 'var(--light)', display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'flex-end' }}>
+          background: 'var(--light)', display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
           {saved && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--pass)', fontWeight: 700 }}>✓ Saved</span>}
+          <button onClick={() => {
+            const all = {}
+            ;(student.completedSections || []).forEach(id => { all[id] = true })
+            setOverrides(all)
+            setSaved(false)
+          }}
+            style={{ padding: '9px 18px', border: '1.5px solid var(--pass-mid)', borderRadius: 8,
+              fontSize: 13, fontWeight: 700, color: 'var(--pass)', background: 'var(--pass-light)',
+              marginRight: 'auto' }}>
+            ✓ Verify All
+          </button>
           <button onClick={onClose}
             style={{ padding: '9px 18px', border: '1.5px solid var(--border)', borderRadius: 8,
               fontSize: 13, fontWeight: 600, color: 'var(--slate)', background: 'var(--white)' }}>Close</button>
@@ -789,6 +802,29 @@ export default function TutorDashboard({ onLogout }) {
     })
   }
 
+  async function handleRecalcXP() {
+    setConfirm({
+      icon: '🔄', title: 'Recalculate all XP?',
+      message: 'This recalculates every student XP from scratch based on actual completed sections, badges, and early bonuses. Fixes any stale or incorrect XP values.',
+      requireWord: 'RECALC',
+      onConfirm: async () => {
+        const updated = []
+        for (const s of students) {
+          const milestone = calcMilestoneBonus(s.completedSections || [], s.milestoneBonus || 0)
+          const newXP = calcXP(s.completedSections || [], s.badges || [], s.earlyBonuses || {}, milestone)
+          if (newXP !== s.xp) {
+            await upsertStudent(s.studentId, { ...s, xp: newXP })
+            updated.push({ ...s, xp: newXP })
+          } else {
+            updated.push(s)
+          }
+        }
+        setStudents(updated.sort((a, b) => (b.xp || 0) - (a.xp || 0)))
+        setConfirm(null)
+      }
+    })
+  }
+
   async function handleRecalcBadges() {
     setConfirm({
       icon: '🏅', title: 'Recalculate all badges?',
@@ -915,6 +951,11 @@ export default function TutorDashboard({ onLogout }) {
                   border: '1.5px solid #FDBA74', borderRadius: 8, fontSize: 13, fontWeight: 700 }}>
                 ⚡ Backfill Bonuses
               </button>
+              <button onClick={handleRecalcXP}
+                style={{ padding: '9px 18px', background: '#EFF6FF', color: '#2563EB',
+                  border: '1.5px solid #BFDBFE', borderRadius: 8, fontSize: 13, fontWeight: 700 }}>
+                🔄 Recalc XP
+              </button>
               <button onClick={handleRecalcBadges}
                 style={{ padding: '9px 18px', background: '#EDE9FE', color: '#7C3AED',
                   border: '1.5px solid #C4B5FD', borderRadius: 8, fontSize: 13, fontWeight: 700 }}>
@@ -972,7 +1013,10 @@ export default function TutorDashboard({ onLogout }) {
                             <code style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--slate)' }}>{s.studentId}</code>
                           </td>
                           <td style={{ padding: '11px 12px' }}>
-                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: 'var(--gold)' }}>{s.xp || 0}</span>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: 'var(--gold)' }}>
+                              {getVerifiedXP(s)}
+                              <span style={{ fontWeight: 400, color: 'var(--slate)', fontSize: 11 }}> / {s.xp || 0}</span>
+                            </span>
                           </td>
                           <td style={{ padding: '11px 12px' }}>
                             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700,

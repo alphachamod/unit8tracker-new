@@ -125,21 +125,28 @@ export function calcEarlyBonus(sectionId, verifiedAtMs) {
   return Math.min(50, Math.max(0, bonus));
 }
 
-export function calcXP(completedSections, badges, earlyBonuses = {}) {
-  const base = SECTIONS.filter(s => completedSections.includes(s.id)).reduce((a, s) => a + s.xp, 0);
-  const badgeBonus = (badges || []).reduce((a, bid) => {
-    const b = BADGES.find(x => x.id === bid);
-    return a + (b?.xpBonus || 0);
-  }, 0);
-  const earlyTotal = Object.values(earlyBonuses || {}).reduce((a, v) => a + (v || 0), 0);
+// Calculate the milestone bonus based on current progress and time
+// Returns the bonus amount — call this when sections change and store the result
+export function calcMilestoneBonus(completedSections, storedMilestone = 0) {
   const days = getDaysElapsed();
-  let milestoneBonus = 0;
+  let milestoneBonus = storedMilestone; // never go below stored value
   const passIds = SECTIONS.filter(s => s.band === 'pass').map(s => s.id);
   const meritIds = SECTIONS.filter(s => s.band !== 'distinction').map(s => s.id);
   if (days <= 7  && ['s1','s2a','s2b','s2c','s2d','s2e','s2f','s2g'].every(id => completedSections.includes(id))) milestoneBonus = Math.max(milestoneBonus, 120);
   if (days <= 21 && passIds.every(id => completedSections.includes(id))) milestoneBonus = Math.max(milestoneBonus, 200);
   if (days <= 28 && meritIds.every(id => completedSections.includes(id))) milestoneBonus = Math.max(milestoneBonus, 300);
   if (days <= 35 && SECTIONS.every(s => completedSections.includes(s.id))) milestoneBonus = Math.max(milestoneBonus, 500);
+  return milestoneBonus;
+}
+
+export function calcXP(completedSections, badges, earlyBonuses = {}, storedMilestone = 0) {
+  const base = SECTIONS.filter(s => completedSections.includes(s.id)).reduce((a, s) => a + s.xp, 0);
+  const badgeBonus = (badges || []).reduce((a, bid) => {
+    const b = BADGES.find(x => x.id === bid);
+    return a + (b?.xpBonus || 0);
+  }, 0);
+  const earlyTotal = Object.values(earlyBonuses || {}).reduce((a, v) => a + (v || 0), 0);
+  const milestoneBonus = calcMilestoneBonus(completedSections, storedMilestone);
   return base + badgeBonus + milestoneBonus + earlyTotal;
 }
 
@@ -154,7 +161,8 @@ export function calcVerifiedXP(completedSections, badges, tutorOverrides, earlyB
   const earlyTotal = Object.entries(earlyBonuses || {})
     .filter(([id]) => tutorOverrides?.[id] === true)
     .reduce((a, [, v]) => a + (v || 0), 0);
-  return base + badgeBonus + earlyTotal;
+  const milestoneBonus = calcMilestoneBonus(verifiedSections, 0);
+  return base + badgeBonus + milestoneBonus + earlyTotal;
 }
 
 export function checkBadges(completedSections, xp, streak, tutorOverrides = {}) {

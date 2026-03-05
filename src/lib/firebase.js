@@ -58,7 +58,7 @@ export async function loginStudent(studentId, name) {
   }
 }
 
-export async function saveProgress(studentId, { completedSections, xp, badges, completedTimestamps }) {
+export async function saveProgress(studentId, { completedSections, xp, badges, completedTimestamps, milestoneBonus }) {
   // Recalculate streak based on consecutive days with section completions
   const timestamps = completedTimestamps || {};
   const today = new Date().toISOString().split('T')[0];
@@ -91,6 +91,7 @@ export async function saveProgress(studentId, { completedSections, xp, badges, c
     xp,
     badges,
     completedTimestamps: timestamps,
+    milestoneBonus: milestoneBonus || 0,
     streak: Math.max(streak, 1),
     lastSeen: Date.now(),
   });
