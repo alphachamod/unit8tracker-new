@@ -18,6 +18,21 @@ const CRIT_COLORS = {
   D3: { bg: '#ffd580', border: '#b06800', text: '#4a2800' },
 }
 
+// Grade based on which bands are fully verified — not XP thresholds
+// Prevents early/milestone bonuses inflating grade display
+const PASS_IDS  = SECTIONS.filter(s => s.band === 'pass').map(s => s.id)
+const MERIT_IDS = SECTIONS.filter(s => s.band === 'merit').map(s => s.id)
+const DIST_IDS  = SECTIONS.filter(s => s.band === 'distinction').map(s => s.id)
+
+function getVerifiedGrade(s) {
+  const ov = s.tutorOverrides || {}
+  const isV = id => ov[id] === true
+  if ([...PASS_IDS, ...MERIT_IDS, ...DIST_IDS].every(isV)) return { g: 'D*', c: 'var(--dist)' }
+  if ([...PASS_IDS, ...MERIT_IDS].every(isV))               return { g: 'M',  c: 'var(--merit)' }
+  if (PASS_IDS.every(isV))                                  return { g: 'P',  c: 'var(--pass)' }
+  return                                                           { g: '—',  c: 'var(--slate)' }
+}
+
 function gradeLabel(xp) {
   if (xp >= TOTAL_XP)      return { g: 'D*', c: 'var(--dist)' }
   if (xp >= PASS_MERIT_XP) return { g: 'M',  c: 'var(--merit)' }
@@ -793,7 +808,7 @@ function LeaderboardTab({ students }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {sorted.map((s, i) => {
           const vXP = getVerifiedXP(s)
-          const { g, c } = gradeLabel(vXP)
+          const { g, c } = getVerifiedGrade(s)
           const completed = s.completedSections || []
           const passD  = SECTIONS.filter(x => x.band === 'pass' && completed.includes(x.id)).length
           const meritD = SECTIONS.filter(x => x.band === 'merit' && completed.includes(x.id)).length
@@ -1396,8 +1411,8 @@ export default function TutorDashboard({ onLogout }) {
   })
 
   const totalStudents  = students.length
-  const achievedPass   = students.filter(s => getVerifiedXP(s) >= PASS_XP).length
-  const achievedMerit  = students.filter(s => getVerifiedXP(s) >= PASS_MERIT_XP).length
+  const achievedPass   = students.filter(s => getVerifiedGrade(s).g !== '—').length
+  const achievedMerit  = students.filter(s => getVerifiedGrade(s).g === 'M' || getVerifiedGrade(s).g === 'D*').length
   const behindCount    = students.filter(s => {
     const st = getScheduleStatus(s.completedSections)
     return st?.label === 'Behind'
@@ -1414,8 +1429,8 @@ export default function TutorDashboard({ onLogout }) {
     const daysLeft  = (DEADLINE.getTime() - now) / 86400000
     return Math.round(vXP + dailyRate * daysLeft)
   }
-  const projectedPass  = students.filter(s => getVerifiedXP(s) < PASS_XP  && projectXP(s) >= PASS_XP).length
-  const projectedMerit = students.filter(s => getVerifiedXP(s) < PASS_MERIT_XP && projectXP(s) >= PASS_MERIT_XP).length
+  const projectedPass  = students.filter(s => getVerifiedGrade(s).g === '—' && projectXP(s) >= PASS_XP).length
+  const projectedMerit = students.filter(s => getVerifiedGrade(s).g !== 'M' && getVerifiedGrade(s).g !== 'D*' && projectXP(s) >= PASS_MERIT_XP).length
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--light)' }}>
@@ -1584,7 +1599,7 @@ export default function TutorDashboard({ onLogout }) {
                   <tbody>
                     {filtered.map((s, i) => {
                       const vXP = getVerifiedXP(s)
-                const { g, c } = gradeLabel(vXP)
+                const { g, c } = getVerifiedGrade(s)
                       const completed = s.completedSections || []
                       const passD  = SECTIONS.filter(x => x.band === 'pass' && completed.includes(x.id)).length
                       const meritD = SECTIONS.filter(x => x.band === 'merit' && completed.includes(x.id)).length
