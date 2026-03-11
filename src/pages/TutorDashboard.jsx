@@ -540,6 +540,242 @@ function ProgressTab({ students }) {
   )
 }
 
+// ─── Insights Tab ─────────────────────────────────────────────
+function InsightsTab({ students }) {
+  const [groupFilter, setGroupFilter] = useState('all')
+
+  const filtered = groupFilter === 'all' ? students
+    : students.filter(s => STUDENT_GROUPS[s.studentId] === groupFilter)
+
+  // ── Section completion heatmap ──
+  const sectionStats = SECTIONS.map(sec => {
+    const selfDone     = filtered.filter(s => (s.completedSections || []).includes(sec.id)).length
+    const verified     = filtered.filter(s => s.tutorOverrides?.[sec.id] === true).length
+    const rejected     = filtered.filter(s => s.tutorOverrides?.[sec.id] === false).length
+    const total        = filtered.length
+    return { ...sec, selfDone, verified, rejected, total, pct: total > 0 ? selfDone / total : 0 }
+  })
+
+  // ── Grade distribution ──
+  const gradeDist = [
+    { label: 'D*', color: 'var(--dist)',   min: TOTAL_XP,      max: Infinity },
+    { label: 'M',  color: 'var(--merit)',  min: PASS_MERIT_XP, max: TOTAL_XP },
+    { label: 'P',  color: 'var(--pass)',   min: PASS_XP,       max: PASS_MERIT_XP },
+    { label: '—',  color: 'var(--slate)',  min: 0,             max: PASS_XP },
+  ].map(g => ({
+    ...g,
+    count: filtered.filter(s => {
+      const vxp = calcVerifiedXP(s.completedSections, s.badges, s.tutorOverrides, s.earlyBonuses)
+      return vxp >= g.min && vxp < g.max
+    }).length
+  }))
+  const maxGradeCount = Math.max(...gradeDist.map(g => g.count), 1)
+
+  // ── Week-by-week cohort progress ──
+  // For each week, count how many students completed all sections due by end of that week
+  const weekProgress = WEEKS_DATA.map((week, wi) => {
+    const expectedIds = SECTIONS.filter(s =>
+      WEEKS_DATA.slice(0, wi + 1).some(w => w.items.some(i => i.criteria === s.criteria))
+    ).map(s => s.id)
+
+    if (expectedIds.length === 0) return { week, wi, complete: 0, partial: 0, behind: 0, total: filtered.length }
+
+    let complete = 0, partial = 0, behind = 0
+    filtered.forEach(s => {
+      const done = (s.completedSections || []).filter(id => expectedIds.includes(id)).length
+      const ratio = done / expectedIds.length
+      if (ratio >= 1)    complete++
+      else if (ratio > 0) partial++
+      else                behind++
+    })
+    return { week, wi, complete, partial, behind, total: filtered.length, expectedIds }
+  })
+
+  const bandColors = { pass: 'var(--pass)', merit: 'var(--merit)', distinction: 'var(--dist)' }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+
+      {/* Group filter */}
+      <div style={{ display: 'flex', gap: 6 }}>
+        {['all','A','B','C'].map(g => (
+          <button key={g} onClick={() => setGroupFilter(g)}
+            style={{ padding: '5px 14px', borderRadius: 6, fontSize: 12, fontWeight: 700,
+              background: groupFilter === g ? 'var(--navy)' : 'var(--white)',
+              color: groupFilter === g ? '#fff' : 'var(--slate)',
+              border: `1.5px solid ${groupFilter === g ? 'var(--navy)' : 'var(--border)'}` }}>
+            {g === 'all' ? `All (${students.length})` : `Grp ${g} (${students.filter(s => STUDENT_GROUPS[s.studentId] === g).length})`}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Grade Distribution ── */}
+      <div style={{ background: 'var(--white)', borderRadius: 12, border: '1.5px solid var(--border)', padding: '20px 24px' }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: 'var(--navy)',
+          textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 18 }}>
+          📊 Grade Distribution (Verified XP)
+        </div>
+        <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end', height: 140 }}>
+          {gradeDist.map(g => (
+            <div key={g.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, height: '100%', justifyContent: 'flex-end' }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 900, color: g.color }}>{g.count}</div>
+              <div style={{ width: '100%', maxWidth: 80, borderRadius: '6px 6px 0 0', transition: 'height 0.4s',
+                height: `${Math.max(4, (g.count / maxGradeCount) * 100)}px`,
+                background: g.color, opacity: g.count === 0 ? 0.2 : 1 }}/>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 900, color: g.color }}>{g.label}</div>
+              <div style={{ fontSize: 10, color: 'var(--slate)', textAlign: 'center' }}>
+                {filtered.length > 0 ? Math.round(g.count / filtered.length * 100) : 0}%
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 16, height: 1, background: 'var(--border)' }}/>
+        <div style={{ marginTop: 10, fontSize: 11, color: 'var(--slate)' }}>
+          Based on tutor-verified XP only. Self-reported sections not counted.
+        </div>
+      </div>
+
+      {/* ── Week-by-week Cohort Progress ── */}
+      <div style={{ background: 'var(--white)', borderRadius: 12, border: '1.5px solid var(--border)', padding: '20px 24px' }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: 'var(--navy)',
+          textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 18 }}>
+          📅 Week-by-Week Cohort Progress
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {weekProgress.map(({ week, wi, complete, partial, behind, total, expectedIds }) => {
+            if (!expectedIds || expectedIds.length === 0) return null
+            const now = new Date()
+            const weekEnd = new Date(week.end + 'T23:59:59')
+            const isPast = now > weekEnd
+            const isCurrent = wi === WEEKS_DATA.findIndex(w => now >= new Date(w.start) && now <= new Date(w.end + 'T23:59:59'))
+            const completePct = total > 0 ? (complete / total) * 100 : 0
+            const partialPct  = total > 0 ? (partial / total) * 100 : 0
+            const behindPct   = total > 0 ? (behind / total) * 100 : 0
+
+            return (
+              <div key={wi} style={{ display: 'grid', gridTemplateColumns: '100px 1fr 120px', gap: 12, alignItems: 'center',
+                padding: '10px 14px', borderRadius: 8,
+                background: isCurrent ? '#EEF2FF' : 'var(--light)',
+                border: `1.5px solid ${isCurrent ? '#C7D2FE' : 'var(--border)'}` }}>
+                <div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700,
+                    color: isCurrent ? '#4F46E5' : 'var(--navy)' }}>{week.label}</div>
+                  <div style={{ fontSize: 10, color: 'var(--slate)' }}>{week.dates}</div>
+                  {isCurrent && <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#4F46E5', fontWeight: 700, marginTop: 2 }}>← current</div>}
+                </div>
+                {/* Stacked progress bar */}
+                <div>
+                  <div style={{ height: 18, borderRadius: 6, overflow: 'hidden', display: 'flex', background: '#e2e8f0' }}>
+                    <div style={{ width: `${completePct}%`, background: '#22c55e', transition: 'width 0.4s' }}/>
+                    <div style={{ width: `${partialPct}%`,  background: '#f59e0b', transition: 'width 0.4s' }}/>
+                    <div style={{ width: `${behindPct}%`,   background: isPast ? '#ef4444' : '#e2e8f0', transition: 'width 0.4s' }}/>
+                  </div>
+                  <div style={{ display: 'flex', gap: 10, marginTop: 5 }}>
+                    {[
+                      { label: `${complete} done`, color: '#22c55e' },
+                      { label: `${partial} partial`, color: '#f59e0b' },
+                      { label: `${behind} ${isPast ? 'missed' : 'not started'}`, color: isPast ? '#ef4444' : 'var(--slate)' },
+                    ].map(l => (
+                      <span key={l.label} style={{ fontSize: 10, color: l.color, fontWeight: 600 }}>{l.label}</span>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 16, fontWeight: 900,
+                    color: completePct >= 80 ? '#22c55e' : completePct >= 50 ? '#f59e0b' : '#ef4444' }}>
+                    {Math.round(completePct)}%
+                  </div>
+                  <div style={{ fontSize: 10, color: 'var(--slate)' }}>completed</div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* ── Section Completion Heatmap ── */}
+      <div style={{ background: 'var(--white)', borderRadius: 12, border: '1.5px solid var(--border)', padding: '20px 24px' }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: 'var(--navy)',
+          textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 18 }}>
+          🔥 Section Completion Heatmap
+        </div>
+        {['pass', 'merit', 'distinction'].map(band => (
+          <div key={band} style={{ marginBottom: 20 }}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700,
+              color: bandColors[band], textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+              {band}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              {sectionStats.filter(s => s.band === band).map(sec => {
+                const pct = sec.pct
+                // Heat colour: 0% = cold grey, 100% = green
+                const r = Math.round(220 - pct * 120)
+                const g = Math.round(220 + pct * 35)
+                const b = Math.round(220 - pct * 130)
+                const heatBg = pct === 0 ? '#f1f5f9' : `rgb(${r},${g},${b})`
+                const textColor = pct > 0.6 ? '#fff' : 'var(--navy)'
+                return (
+                  <div key={sec.id} style={{ display: 'grid', gridTemplateColumns: '1fr 60px 80px 80px 60px',
+                    gap: 8, alignItems: 'center', padding: '8px 12px', borderRadius: 8,
+                    background: heatBg, border: '1px solid rgba(0,0,0,0.06)' }}>
+                    <div>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: textColor }}>{sec.title}</span>
+                    </div>
+                    {/* Bar */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700, color: textColor }}>
+                        {sec.selfDone}/{sec.total}
+                      </span>
+                    </div>
+                    <div>
+                      <div style={{ height: 6, background: 'rgba(0,0,0,0.1)', borderRadius: 3, overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${pct * 100}%`, background: pct > 0.6 ? 'rgba(255,255,255,0.6)' : bandColors[band], borderRadius: 3 }}/>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      {sec.verified > 0 && (
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700,
+                          background: 'rgba(255,255,255,0.5)', color: '#166534', borderRadius: 3, padding: '1px 5px' }}>
+                          ✓{sec.verified}
+                        </span>
+                      )}
+                      {sec.rejected > 0 && (
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700,
+                          background: 'rgba(255,255,255,0.5)', color: 'var(--red)', borderRadius: 3, padding: '1px 5px' }}>
+                          ✗{sec.rejected}
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700,
+                      color: textColor, textAlign: 'right' }}>
+                      {Math.round(pct * 100)}%
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        ))}
+        <div style={{ display: 'flex', gap: 12, marginTop: 8, alignItems: 'center' }}>
+          <span style={{ fontSize: 11, color: 'var(--slate)', fontWeight: 700 }}>Heat:</span>
+          {[0, 25, 50, 75, 100].map(p => {
+            const r = Math.round(220 - (p/100) * 120)
+            const g2 = Math.round(220 + (p/100) * 35)
+            const b2 = Math.round(220 - (p/100) * 130)
+            return (
+              <div key={p} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <div style={{ width: 16, height: 16, borderRadius: 3, background: p === 0 ? '#f1f5f9' : `rgb(${r},${g2},${b2})`, border: '1px solid rgba(0,0,0,0.08)' }}/>
+                <span style={{ fontSize: 10, color: 'var(--slate)' }}>{p}%</span>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+    </div>
+  )
+}
+
 function LeaderboardTab({ students }) {
   const [breakdown, setBreakdown] = useState(null)
   const sorted = [...students].sort((a, b) => getVerifiedXP(b) - getVerifiedXP(a))
@@ -1227,6 +1463,7 @@ export default function TutorDashboard({ onLogout }) {
           {[
             { id: 'students',     label: '👥 Students' },
             { id: 'progress',     label: '📈 Progress' },
+            { id: 'insights',     label: '🔍 Insights' },
             { id: 'leaderboard',  label: '🏆 Leaderboard' },
           ].map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
@@ -1247,6 +1484,7 @@ export default function TutorDashboard({ onLogout }) {
         {/* Leaderboard tab */}
         {tab === 'leaderboard' && !loading && <LeaderboardTab students={students} />}
         {tab === 'progress'    && !loading && <ProgressTab students={students} />}
+        {tab === 'insights'    && !loading && <InsightsTab students={students} />}
 
         {/* Students tab */}
         {tab === 'students' && (

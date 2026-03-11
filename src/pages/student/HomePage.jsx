@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { SECTIONS, BADGES, TOTAL_XP, PASS_XP, PASS_MERIT_XP, getDaysElapsed } from '../../data/gameData'
+import { SECTIONS, BADGES, TOTAL_XP, PASS_XP, PASS_MERIT_XP, getDaysElapsed, WEEKS_DATA, DEADLINE, START_DATE } from '../../data/gameData'
 import Countdown from '../../components/Countdown'
 
 const CRIT_COLORS = {
@@ -41,7 +41,28 @@ export default function HomePage({ student, onNavigate }) {
   const passTotal = SECTIONS.filter(s => s.band === 'pass').length
   const passDone  = SECTIONS.filter(s => s.band === 'pass' && completed.includes(s.id)).length
 
-  const nextSec      = SECTIONS.find(s => !completed.includes(s.id) && overrides[s.id] !== false)
+  // What's next: up to 3 sections not done, not rejected, prioritised by schedule week
+  const weekSectionOrder = WEEKS_DATA.flatMap(w =>
+    SECTIONS.filter(s => w.items.some(i => i.criteria === s.criteria)).map(s => s.id)
+  )
+  const orderedSections = [
+    ...weekSectionOrder.map(id => SECTIONS.find(s => s.id === id)).filter(Boolean),
+    ...SECTIONS.filter(s => !weekSectionOrder.includes(s.id))
+  ]
+  const nextSections = orderedSections
+    .filter(s => !completed.includes(s.id) && overrides[s.id] !== false)
+    .slice(0, 3)
+  const nextSec = nextSections[0] // keep for backward compat
+
+  // Grade projection: extrapolate current XP pace to deadline
+  const now = Date.now()
+  const elapsedDays = Math.max(1, (now - START_DATE.getTime()) / 86400000)
+  const daysLeft    = Math.max(0, (DEADLINE.getTime() - now) / 86400000)
+  const dailyRate   = xp / elapsedDays
+  const projectedXP = Math.round(xp + dailyRate * daysLeft)
+  const projectedGrade = projectedXP >= TOTAL_XP ? 'D*' : projectedXP >= PASS_MERIT_XP ? 'Merit' : projectedXP >= PASS_XP ? 'Pass' : 'Below Pass'
+  const projectedColor = projectedXP >= TOTAL_XP ? 'var(--dist)' : projectedXP >= PASS_MERIT_XP ? 'var(--merit)' : projectedXP >= PASS_XP ? 'var(--pass)' : 'var(--red)'
+
   const recentBadges = BADGES.filter(b => badgeIds.includes(b.id)).slice(-3)
   const tutorNote    = student.tutorNote
 
@@ -149,6 +170,24 @@ export default function HomePage({ student, onNavigate }) {
               }}>{m.label}</span>
             ))}
           </div>
+          {/* Grade projection */}
+          {daysLeft > 0 && (
+            <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 10,
+              background: 'rgba(255,255,255,0.07)', borderRadius: 8, padding: '8px 12px',
+              border: '1px solid rgba(255,255,255,0.12)' }}>
+              <span style={{ fontSize: 16 }}>🎯</span>
+              <div style={{ flex: 1 }}>
+                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>At your current pace you're on track for </span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 900, color: projectedColor }}>
+                  {projectedGrade}
+                </span>
+                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}> by the deadline</span>
+              </div>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'rgba(255,255,255,0.4)', whiteSpace: 'nowrap' }}>
+                ~{projectedXP} XP proj.
+              </span>
+            </div>
+          )}
         </div>
       </motion.div>
 
@@ -189,7 +228,7 @@ export default function HomePage({ student, onNavigate }) {
 
       {/* Grid: next up / badges / progress */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 16 }}>
-        {nextSec && (
+        {nextSections.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
             onClick={() => onNavigate('sections')}
             style={{ background: 'var(--white)', borderRadius: 12, padding: 20,
@@ -197,19 +236,47 @@ export default function HomePage({ student, onNavigate }) {
             onMouseEnter={e => e.currentTarget.style.boxShadow = 'var(--shadow-md)'}
             onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}>
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700,
-              color: 'var(--slate)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
-              Next up
+              color: 'var(--slate)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
+              🎯 What to work on next
             </div>
-            {(() => { const c = CRIT_COLORS[nextSec.criteria]; return (
-              <span style={{ display: 'inline-block', fontSize: 11, fontWeight: 700,
-                background: c?.bg, color: c?.text, border: `1.5px solid ${c?.border}`,
-                borderRadius: 4, padding: '2px 8px', marginBottom: 8, fontFamily: 'var(--font-mono)' }}>
-                {nextSec.criteria}
-              </span>
-            )})()}
-            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--navy)', lineHeight: 1.4 }}>{nextSec.title}</div>
-            <div style={{ marginTop: 8, fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--pass)', fontWeight: 700 }}>
-              +{nextSec.xp} XP →
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {nextSections.map((sec, i) => {
+                const c = CRIT_COLORS[sec.criteria]
+                return (
+                  <div key={sec.id} style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    background: i === 0 ? 'var(--pass-light)' : 'var(--light)',
+                    borderRadius: 8, padding: '9px 12px',
+                    border: `1.5px solid ${i === 0 ? 'var(--pass-mid)' : 'var(--border)'}`,
+                    opacity: i === 0 ? 1 : 0.75,
+                  }}>
+                    <div style={{ width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
+                      background: i === 0 ? 'var(--pass)' : 'var(--border)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700,
+                      color: i === 0 ? '#fff' : 'var(--slate)' }}>
+                      {i + 1}
+                    </div>
+                    {c && (
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700,
+                        background: c.bg, color: c.text, border: `1px solid ${c.border}`,
+                        borderRadius: 3, padding: '1px 6px', flexShrink: 0 }}>
+                        {sec.criteria}
+                      </span>
+                    )}
+                    <span style={{ flex: 1, fontSize: 13, fontWeight: i === 0 ? 600 : 400, color: 'var(--navy)', lineHeight: 1.3 }}>
+                      {sec.title}
+                    </span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700,
+                      color: i === 0 ? 'var(--pass)' : 'var(--slate)', flexShrink: 0 }}>
+                      +{sec.xp}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+            <div style={{ marginTop: 10, fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--pass)', fontWeight: 700 }}>
+              View all sections →
             </div>
           </motion.div>
         )}
