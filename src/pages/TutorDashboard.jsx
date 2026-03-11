@@ -4,7 +4,7 @@ import {
   getAllStudents, saveTutorOverrides, upsertStudent,
   deleteStudent as fbDeleteStudent, clearAllData
 } from '../lib/firebase'
-import { SECTIONS, BADGES, TOTAL_XP, PASS_XP, PASS_MERIT_XP, calcXP, calcMilestoneBonus, calcEarlyBonus, calcVerifiedXP, checkBadges, WEEKS_DATA, STUDENT_GROUPS, STUDENT_ROSTER } from '../data/gameData'
+import { SECTIONS, BADGES, TOTAL_XP, PASS_XP, PASS_MERIT_XP, calcXP, calcMilestoneBonus, calcEarlyBonus, calcVerifiedXP, checkBadges, WEEKS_DATA, STUDENT_GROUPS, STUDENT_ROSTER, DEADLINE, START_DATE } from '../data/gameData'
 
 const CRIT_COLORS = {
   P3: { bg: '#d4edda', border: '#74c38a', text: '#155724' },
@@ -1138,12 +1138,26 @@ export default function TutorDashboard({ onLogout }) {
   })
 
   const totalStudents  = students.length
-  const submittedPass  = students.filter(s => (s.xp || 0) >= PASS_XP).length
-  const submittedMerit = students.filter(s => (s.xp || 0) >= PASS_MERIT_XP).length
+  const achievedPass   = students.filter(s => getVerifiedXP(s) >= PASS_XP).length
+  const achievedMerit  = students.filter(s => getVerifiedXP(s) >= PASS_MERIT_XP).length
   const behindCount    = students.filter(s => {
     const st = getScheduleStatus(s.completedSections)
     return st?.label === 'Behind'
   }).length
+
+  // Projection: linear extrapolation of current verified XP pace to deadline
+  const now = Date.now()
+  const totalMs    = DEADLINE.getTime() - START_DATE.getTime()
+  const elapsedMs  = Math.max(1, now - START_DATE.getTime())
+  const remainingRatio = Math.max(0, (DEADLINE.getTime() - now) / totalMs)
+  function projectXP(s) {
+    const vXP = getVerifiedXP(s)
+    const dailyRate = vXP / (elapsedMs / 86400000)
+    const daysLeft  = (DEADLINE.getTime() - now) / 86400000
+    return Math.round(vXP + dailyRate * daysLeft)
+  }
+  const projectedPass  = students.filter(s => getVerifiedXP(s) < PASS_XP  && projectXP(s) >= PASS_XP).length
+  const projectedMerit = students.filter(s => getVerifiedXP(s) < PASS_MERIT_XP && projectXP(s) >= PASS_MERIT_XP).length
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--light)' }}>
@@ -1167,19 +1181,45 @@ export default function TutorDashboard({ onLogout }) {
 
       <div style={{ maxWidth: 1000, margin: '0 auto', padding: '32px 20px' }}>
         {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 12, marginBottom: 28 }}>
-          {[
-            { label: 'Total Students',     val: totalStudents,  color: 'var(--navy)' },
-            { label: 'On track for Pass+', val: submittedPass,  color: 'var(--pass)' },
-            { label: 'On track for Merit+',val: submittedMerit, color: 'var(--merit)' },
-            { label: 'Behind Schedule',    val: behindCount,    color: 'var(--red)' },
-          ].map(stat => (
-            <div key={stat.label} style={{ background: 'var(--white)', borderRadius: 12,
-              padding: '16px 18px', border: '1.5px solid var(--border)' }}>
-              <div style={{ fontFamily: 'var(--font-head)', fontSize: 28, fontWeight: 900, color: stat.color }}>{stat.val}</div>
-              <div style={{ fontSize: 12, color: 'var(--slate)', marginTop: 2 }}>{stat.label}</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 12, marginBottom: 28 }}>
+          {/* Total students — simple */}
+          <div style={{ background: 'var(--white)', borderRadius: 12, padding: '16px 18px', border: '1.5px solid var(--border)' }}>
+            <div style={{ fontFamily: 'var(--font-head)', fontSize: 28, fontWeight: 900, color: 'var(--navy)' }}>{totalStudents}</div>
+            <div style={{ fontSize: 12, color: 'var(--slate)', marginTop: 2 }}>Total Students</div>
+          </div>
+          {/* Pass */}
+          <div style={{ background: 'var(--white)', borderRadius: 12, padding: '16px 18px', border: '1.5px solid var(--border)' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              <div style={{ fontFamily: 'var(--font-head)', fontSize: 28, fontWeight: 900, color: 'var(--pass)' }}>{achievedPass}</div>
+              {projectedPass > 0 && (
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: '#86efac' }}>+{projectedPass} proj.</div>
+              )}
             </div>
-          ))}
+            <div style={{ fontSize: 12, color: 'var(--slate)', marginTop: 2 }}>Pass grade+</div>
+            <div style={{ fontSize: 11, color: 'var(--slate)', marginTop: 4, display: 'flex', gap: 8 }}>
+              <span style={{ color: 'var(--pass)', fontWeight: 600 }}>● {achievedPass} achieved</span>
+              <span style={{ color: '#16a34a', fontWeight: 600 }}>◌ {projectedPass} on pace</span>
+            </div>
+          </div>
+          {/* Merit */}
+          <div style={{ background: 'var(--white)', borderRadius: 12, padding: '16px 18px', border: '1.5px solid var(--border)' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              <div style={{ fontFamily: 'var(--font-head)', fontSize: 28, fontWeight: 900, color: 'var(--merit)' }}>{achievedMerit}</div>
+              {projectedMerit > 0 && (
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: '#fcd34d' }}>+{projectedMerit} proj.</div>
+              )}
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--slate)', marginTop: 2 }}>Merit grade+</div>
+            <div style={{ fontSize: 11, color: 'var(--slate)', marginTop: 4, display: 'flex', gap: 8 }}>
+              <span style={{ color: 'var(--merit)', fontWeight: 600 }}>● {achievedMerit} achieved</span>
+              <span style={{ color: '#b45309', fontWeight: 600 }}>◌ {projectedMerit} on pace</span>
+            </div>
+          </div>
+          {/* Behind */}
+          <div style={{ background: 'var(--white)', borderRadius: 12, padding: '16px 18px', border: '1.5px solid var(--border)' }}>
+            <div style={{ fontFamily: 'var(--font-head)', fontSize: 28, fontWeight: 900, color: 'var(--red)' }}>{behindCount}</div>
+            <div style={{ fontSize: 12, color: 'var(--slate)', marginTop: 2 }}>Behind Schedule</div>
+          </div>
         </div>
 
         {/* Tabs */}
