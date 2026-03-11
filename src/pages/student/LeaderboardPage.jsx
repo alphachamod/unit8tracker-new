@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { getAllStudents } from '../../lib/firebase'
+import { listenToAllStudents } from '../../lib/firebase'
 import { TOTAL_XP, PASS_XP, PASS_MERIT_XP, BADGES, SECTIONS, calcVerifiedXP } from '../../data/gameData'
 
 // ─── XP Breakdown Modal ────────────────────────────────────────
@@ -196,7 +196,7 @@ export default function LeaderboardPage({ student }) {
   const [showGuide, setShowGuide] = useState(false)
 
   useEffect(() => {
-    getAllStudents().then(all => {
+    const unsub = listenToAllStudents(all => {
       const sorted = all
         .map(s => ({
           studentId: s.studentId,
@@ -213,7 +213,8 @@ export default function LeaderboardPage({ student }) {
         .sort((a, b) => b.xp - a.xp)
       setStudents(sorted)
       setLoading(false)
-    }).catch(() => setLoading(false))
+    })
+    return unsub
   }, [])
 
   function gradeLabel(xp) {
@@ -366,7 +367,7 @@ export default function LeaderboardPage({ student }) {
             Your position: #{myRank}
           </span>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: '#FCD34D', fontWeight: 700 }}>
-            {student.xp || 0} XP
+            {calcVerifiedXP(student.completedSections, student.badges, student.tutorOverrides, student.earlyBonuses)} XP
           </span>
         </motion.div>
       )}

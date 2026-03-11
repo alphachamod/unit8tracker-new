@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   getAllStudents, saveTutorOverrides, upsertStudent,
-  deleteStudent as fbDeleteStudent, clearAllData
+  deleteStudent as fbDeleteStudent, clearAllData, setPendingCelebration
 } from '../lib/firebase'
 import { SECTIONS, BADGES, TOTAL_XP, PASS_XP, PASS_MERIT_XP, calcXP, calcMilestoneBonus, calcEarlyBonus, calcVerifiedXP, checkBadges, WEEKS_DATA, STUDENT_GROUPS, STUDENT_ROSTER, DEADLINE, START_DATE } from '../data/gameData'
 
@@ -953,8 +953,9 @@ function StudentModal({ student, onClose, onSave }) {
       }
     })
 
-    const newBadges = checkBadges(finalSections, 0, student.streak || 1, overrides)
-    const allBadges = [...new Set([...(student.badges || []), ...newBadges])]
+    // Recompute badges entirely from verified sections — no accumulation
+    // This means un-verifying a section correctly removes badges that depended on it
+    const allBadges = checkBadges(finalSections, 0, student.streak || 1, overrides)
     const newXP = calcXP(finalSections, allBadges, newEarlyBonuses)
 
     await saveTutorOverrides(student.studentId, {
@@ -962,6 +963,28 @@ function StudentModal({ student, onClose, onSave }) {
       tutorOverrides: overrides, tutorNote: note, earlyBonuses: newEarlyBonuses,
       verifyTimestamps: verifyTimestamps.current,
     })
+
+    // Determine grade unlocked by checking which bands are fully verified
+    // (XP-based check is unreliable due to early/milestone bonuses inflating verified XP)
+    const wasVerified = id => (student.tutorOverrides || {})[id] === true
+    const isVerified  = id => (overrides)[id] === true
+    const passIds        = SECTIONS.filter(s => s.band === 'pass').map(s => s.id)
+    const meritIds       = SECTIONS.filter(s => s.band === 'merit').map(s => s.id)
+    const distinctionIds = SECTIONS.filter(s => s.band === 'distinction').map(s => s.id)
+    const hadPass  = passIds.every(wasVerified)
+    const hadMerit = [...passIds, ...meritIds].every(wasVerified)
+    const hadDist  = [...passIds, ...meritIds, ...distinctionIds].every(wasVerified)
+    const hasPass  = passIds.every(isVerified)
+    const hasMerit = [...passIds, ...meritIds].every(isVerified)
+    const hasDist  = [...passIds, ...meritIds, ...distinctionIds].every(isVerified)
+    const gradeUnlocked =
+      (!hadDist  && hasDist)  ? 'D' :
+      (!hadMerit && hasMerit) ? 'M' :
+      (!hadPass  && hasPass)  ? 'P' : null
+    if (gradeUnlocked) {
+      await setPendingCelebration(student.studentId, gradeUnlocked)
+    }
+
     setSaving(false); setSaved(true)
     onSave({ ...student, completedSections: finalSections, xp: newXP, badges: allBadges, tutorOverrides: overrides, tutorNote: note, earlyBonuses: newEarlyBonuses, verifyTimestamps: verifyTimestamps.current })
   }
@@ -1312,19 +1335,17 @@ export default function TutorDashboard({ onLogout }) {
   async function handleRecalcXP() {
     setConfirm({
       icon: '🔄', title: 'Recalculate all XP?',
-      message: 'This recalculates every student XP from scratch based on actual completed sections, badges, and early bonuses. Fixes any stale or incorrect XP values.',
+      message: 'Recalculates every student\'s XP from their completed sections, badges, and early bonuses. Fixes any stale values.',
       requireWord: 'RECALC',
       onConfirm: async () => {
         const updated = []
         for (const s of students) {
+          const overrides = s.tutorOverrides || {}
+          const newBadges = checkBadges(s.completedSections || [], 0, s.streak || 1, overrides)
           const milestone = calcMilestoneBonus(s.completedSections || [], s.milestoneBonus || 0)
-          const newXP = calcXP(s.completedSections || [], s.badges || [], s.earlyBonuses || {}, milestone)
-          if (newXP !== s.xp) {
-            await upsertStudent(s.studentId, { ...s, xp: newXP })
-            updated.push({ ...s, xp: newXP })
-          } else {
-            updated.push(s)
-          }
+          const newXP = calcXP(s.completedSections || [], newBadges, s.earlyBonuses || {}, milestone)
+          await upsertStudent(s.studentId, { ...s, badges: newBadges, xp: newXP })
+          updated.push({ ...s, badges: newBadges, xp: newXP })
         }
         setStudents(updated.sort((a, b) => (b.xp || 0) - (a.xp || 0)))
         setConfirm(null)
@@ -1335,15 +1356,15 @@ export default function TutorDashboard({ onLogout }) {
   async function handleRecalcBadges() {
     setConfirm({
       icon: '🏅', title: 'Recalculate all badges?',
-      message: 'This will strip any badges earned from self-reported sections and recalculate XP based on tutor-verified sections only.',
+      message: 'Recalculates badges from completed sections and updates XP accordingly.',
       requireWord: 'RECALC',
       onConfirm: async () => {
         const updated = []
         for (const s of students) {
           const overrides = s.tutorOverrides || {}
-          const verifiedSections = (s.completedSections || []).filter(id => overrides[id] === true)
-          const newBadges = checkBadges(verifiedSections, 0, s.streak || 1, overrides)
-          const newXP = calcXP(s.completedSections || [], newBadges, s.earlyBonuses || {})
+          const newBadges = checkBadges(s.completedSections || [], 0, s.streak || 1, overrides)
+          const milestone = calcMilestoneBonus(s.completedSections || [], s.milestoneBonus || 0)
+          const newXP = calcXP(s.completedSections || [], newBadges, s.earlyBonuses || {}, milestone)
           await upsertStudent(s.studentId, { ...s, badges: newBadges, xp: newXP })
           updated.push({ ...s, badges: newBadges, xp: newXP })
         }

@@ -102,6 +102,26 @@ export async function getStudent(studentId) {
   return snap.exists() ? { studentId, ...snap.val() } : null;
 }
 
+// Live listener — calls callback whenever this student's data changes in Firebase
+// Returns an unsubscribe function
+export function listenToStudent(studentId, callback) {
+  const r = studentRef(studentId);
+  onValue(r, snap => {
+    if (snap.exists()) callback({ studentId, ...snap.val() });
+  });
+  return () => off(r);
+}
+
+// Store a pending celebration grade ('P' | 'M' | 'D') to show student on next login
+export async function setPendingCelebration(studentId, grade) {
+  await update(studentRef(studentId), { pendingCelebration: grade });
+}
+
+// Clear after shown
+export async function clearPendingCelebration(studentId) {
+  await update(studentRef(studentId), { pendingCelebration: null });
+}
+
 // ── Tutor ops ─────────────────────────────────────────────────
 
 export function checkTutorPin(pin) {
@@ -112,6 +132,17 @@ export async function getAllStudents() {
   const snap = await get(studentsRef());
   if (!snap.exists()) return [];
   return Object.entries(snap.val()).map(([id, data]) => ({ studentId: id, ...data }));
+}
+
+// Live listener for all students — fires whenever any student's data changes
+export function listenToAllStudents(callback) {
+  const r = studentsRef();
+  onValue(r, snap => {
+    if (!snap.exists()) { callback([]); return; }
+    const all = Object.entries(snap.val()).map(([id, data]) => ({ studentId: id, ...data }));
+    callback(all);
+  });
+  return () => off(r);
 }
 
 export async function saveTutorOverrides(studentId, { completedSections, xp, badges, tutorOverrides, tutorNote, earlyBonuses, verifyTimestamps }) {

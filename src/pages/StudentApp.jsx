@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { saveProgress, getStudent } from '../lib/firebase'
+import { saveProgress, getStudent, listenToStudent, clearPendingCelebration } from '../lib/firebase'
 import { SECTIONS, BADGES, TOTAL_XP, PASS_XP, PASS_MERIT_XP, calcXP, calcMilestoneBonus, checkBadges, SECTION_POPUPS, DEADLINE, START_DATE } from '../data/gameData'
 import HomePage from './student/HomePage'
 import TimelinePage from './student/TimelinePage'
@@ -10,6 +10,7 @@ import IntegrityPage from './student/IntegrityPage'
 import ResourcesPage from './student/ResourcesPage'
 import FAQPage from './student/FAQPage'
 import SectionPopup from '../components/SectionPopup'
+import GradeCelebration from '../components/GradeCelebration'
 import Toast from '../components/Toast'
 
 const NAV_ITEMS = [
@@ -27,18 +28,55 @@ export default function StudentApp({ student, setStudent, onLogout }) {
   const [popup, setPopup] = useState(null)
   const [toast, setToast] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [gradeCelebration, setGradeCelebration] = useState(null) // 'P' | 'M' | 'D'
   const syncTimer = useRef(null)
+  const isSettled = useRef(false)
 
-  // FIX 1: Pull fresh data on mount AND recalculate XP from server state
-  // This ensures tutor overrides are reflected immediately on login
+  // Helper — returns which grade bands are fully verified for a given tutorOverrides map
+  const getVerifiedGrade = (overrides) => {
+    const passIds        = SECTIONS.filter(s => s.band === 'pass').map(s => s.id)
+    const meritIds       = SECTIONS.filter(s => s.band === 'merit').map(s => s.id)
+    const distIds        = SECTIONS.filter(s => s.band === 'distinction').map(s => s.id)
+    const isV = id => overrides?.[id] === true
+    if ([...passIds, ...meritIds, ...distIds].every(isV)) return 'D'
+    if ([...passIds, ...meritIds].every(isV))             return 'M'
+    if (passIds.every(isV))                               return 'P'
+    return null
+  }
+  const prevGrade = useRef(getVerifiedGrade(student.tutorOverrides))
+
+  // Live listener — updates student state whenever tutor makes changes in Firebase
   useEffect(() => {
-    getStudent(student.studentId).then(fresh => {
-      if (fresh) {
-        const recalcedXP = calcXP(fresh.completedSections || [], fresh.badges || [])
-        setStudent(s => ({ ...s, ...fresh, xp: recalcedXP }))
+    const unsub = listenToStudent(student.studentId, fresh => {
+      const recalcedXP = calcXP(fresh.completedSections || [], fresh.badges || [])
+      setStudent(s => ({ ...s, ...fresh, xp: recalcedXP }))
+      if (!isSettled.current) {
+        // First callback is the initial load — set baseline grade and mark settled
+        prevGrade.current = getVerifiedGrade(fresh.tutorOverrides)
+        // Check for a pending celebration stored by tutor
+        if (fresh.pendingCelebration) {
+          setTimeout(() => {
+            setGradeCelebration(fresh.pendingCelebration)
+            clearPendingCelebration(fresh.studentId).catch(() => {})
+          }, 1200)
+        }
+        setTimeout(() => { isSettled.current = true }, 800)
       }
-    }).catch(() => {})
+    })
+    return unsub
   }, [])
+
+  // Watch verified overrides — fires when tutor verifies sections while student is live
+  useEffect(() => {
+    if (!isSettled.current) return
+    const currentGrade = getVerifiedGrade(student.tutorOverrides)
+    const prev = prevGrade.current
+    prevGrade.current = currentGrade
+    const GRADE_RANK = { null: 0, P: 1, M: 2, D: 3 }
+    if ((GRADE_RANK[currentGrade] || 0) > (GRADE_RANK[prev] || 0)) {
+      setTimeout(() => setGradeCelebration(currentGrade), 600)
+    }
+  }, [student.tutorOverrides])
 
   // Debounced sync to Firebase
   const scheduleSync = useCallback((data) => {
@@ -229,6 +267,7 @@ export default function StudentApp({ student, setStudent, onLogout }) {
 
       <AnimatePresence>
         {popup && <SectionPopup sectionId={popup.sectionId} xp={popup.xp} onClose={() => setPopup(null)} />}
+        {gradeCelebration && <GradeCelebration grade={gradeCelebration} onClose={() => setGradeCelebration(null)} />}
       </AnimatePresence>
       <AnimatePresence>
         {toast && <Toast message={toast} />}

@@ -182,9 +182,12 @@ export function calcXP(completedSections, badges, earlyBonuses = {}, storedMiles
 export function calcVerifiedXP(completedSections, badges, tutorOverrides, earlyBonuses = {}) {
   const verifiedSections = (completedSections || []).filter(id => tutorOverrides?.[id] === true);
   const base = SECTIONS.filter(s => verifiedSections.includes(s.id)).reduce((a, s) => a + s.xp, 0);
+  // Only count badge XP if the badge's condition is met by verified sections alone
   const badgeBonus = (badges || []).reduce((a, bid) => {
     const b = BADGES.find(x => x.id === bid);
-    return a + (b?.xpBonus || 0);
+    if (!b) return a;
+    const earnedByVerified = b.condition ? b.condition(verifiedSections) : false;
+    return earnedByVerified ? a + (b.xpBonus || 0) : a;
   }, 0);
   const earlyTotal = Object.entries(earlyBonuses || {})
     .filter(([id]) => tutorOverrides?.[id] === true)

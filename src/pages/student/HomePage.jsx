@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { SECTIONS, BADGES, TOTAL_XP, PASS_XP, PASS_MERIT_XP, getDaysElapsed, WEEKS_DATA, DEADLINE, START_DATE } from '../../data/gameData'
+import { SECTIONS, BADGES, TOTAL_XP, PASS_XP, PASS_MERIT_XP, getDaysElapsed, WEEKS_DATA, DEADLINE, START_DATE, calcVerifiedXP } from '../../data/gameData'
 import Countdown from '../../components/Countdown'
 
 const CRIT_COLORS = {
@@ -37,9 +37,10 @@ export default function HomePage({ student, onNavigate }) {
   const xp = student.xp || 0
   const streak = student.streak || 1
   const badgeIds = student.badges || []
+  const verifiedCompleted = completed.filter(id => overrides[id] === true)
 
   const passTotal = SECTIONS.filter(s => s.band === 'pass').length
-  const passDone  = SECTIONS.filter(s => s.band === 'pass' && completed.includes(s.id)).length
+  const passDone  = SECTIONS.filter(s => s.band === 'pass' && verifiedCompleted.includes(s.id)).length
 
   // What's next: up to 3 sections not done, not rejected, prioritised by schedule week
   const weekSectionOrder = WEEKS_DATA.flatMap(w =>
@@ -54,14 +55,29 @@ export default function HomePage({ student, onNavigate }) {
     .slice(0, 3)
   const nextSec = nextSections[0] // keep for backward compat
 
-  // Grade projection: extrapolate current XP pace to deadline
+  // Grade projection: extrapolate verified section XP pace to deadline
+  // Use base section XP only (no bonuses) for rate — bonuses can't be projected forward
   const now = Date.now()
-  const elapsedDays = Math.max(1, (now - START_DATE.getTime()) / 86400000)
-  const daysLeft    = Math.max(0, (DEADLINE.getTime() - now) / 86400000)
-  const dailyRate   = xp / elapsedDays
-  const projectedXP = Math.round(xp + dailyRate * daysLeft)
+  const elapsedDays  = Math.max(1, (now - START_DATE.getTime()) / 86400000)
+  const daysLeft     = Math.max(0, (DEADLINE.getTime() - now) / 86400000)
+  const verifiedXP   = calcVerifiedXP(student.completedSections, student.badges, student.tutorOverrides, student.earlyBonuses)
+  const baseVerified = SECTIONS.filter(s => (student.tutorOverrides || {})[s.id] === true).reduce((a, s) => a + s.xp, 0)
+  const dailyRate    = baseVerified / elapsedDays
+  const projectedXP  = Math.min(TOTAL_XP, Math.round(verifiedXP + dailyRate * daysLeft))
   const projectedGrade = projectedXP >= TOTAL_XP ? 'D*' : projectedXP >= PASS_MERIT_XP ? 'Merit' : projectedXP >= PASS_XP ? 'Pass' : 'Below Pass'
   const projectedColor = projectedXP >= TOTAL_XP ? 'var(--dist)' : projectedXP >= PASS_MERIT_XP ? 'var(--merit)' : projectedXP >= PASS_XP ? 'var(--pass)' : 'var(--red)'
+
+  // Bar display: cap at the highest band the student has fully verified
+  // Prevents early bonuses/badge XP pushing bar past unearned grade markers
+  const passIds   = SECTIONS.filter(s => s.band === 'pass').map(s => s.id)
+  const meritIds  = SECTIONS.filter(s => s.band === 'merit').map(s => s.id)
+  const distIds   = SECTIONS.filter(s => s.band === 'distinction').map(s => s.id)
+  const isV = id => (student.tutorOverrides || {})[id] === true
+  const allDistDone  = [...passIds, ...meritIds, ...distIds].every(isV)
+  const allMeritDone = [...passIds, ...meritIds].every(isV)
+  const allPassDone  = passIds.every(isV)
+  const barCap = allDistDone ? TOTAL_XP : allMeritDone ? PASS_MERIT_XP : allPassDone ? PASS_XP : baseVerified
+  const barXP  = Math.min(verifiedXP, barCap)
 
   const recentBadges = BADGES.filter(b => badgeIds.includes(b.id)).slice(-3)
   const tutorNote    = student.tutorNote
@@ -131,7 +147,7 @@ export default function HomePage({ student, onNavigate }) {
           padding: '14px 16px 12px', border: '1px solid rgba(148,163,184,0.35)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10, alignItems: 'baseline' }}>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: '#FCD34D' }}>
-              {xp} XP
+              {verifiedXP} XP
             </span>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'rgba(226,232,240,0.9)' }}>
               {passDone}/{passTotal} pass sections completed
@@ -139,10 +155,10 @@ export default function HomePage({ student, onNavigate }) {
           </div>
           <div style={{ position: 'relative', marginBottom: 10 }}>
             <div style={{ height: 7, background: 'rgba(255,255,255,0.12)', borderRadius: 999, overflow: 'hidden' }}>
-              <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, (xp / TOTAL_XP) * 100)}%` }}
+              <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, (barXP / TOTAL_XP) * 100)}%` }}
                 transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
                 style={{ height: '100%', borderRadius: 999,
-                  background: xp >= TOTAL_XP ? 'var(--dist-mid)' : xp >= PASS_MERIT_XP ? 'var(--merit-mid)' : '#4ade80' }}/>
+                  background: barXP >= TOTAL_XP ? 'var(--dist-mid)' : barXP >= PASS_MERIT_XP ? 'var(--merit-mid)' : '#4ade80' }}/>
             </div>
             {[{ label: 'P', value: PASS_XP }, { label: 'M', value: PASS_MERIT_XP }, { label: 'D', value: TOTAL_XP }].map(m => (
               <div key={m.label} style={{ position: 'absolute', left: `${Math.min(100,(m.value/TOTAL_XP)*100)}%`,
@@ -319,7 +335,7 @@ export default function HomePage({ student, onNavigate }) {
             { label: 'Merit', secs: SECTIONS.filter(s => s.band === 'merit'), color: 'var(--merit)' },
             { label: 'Distinction', secs: SECTIONS.filter(s => s.band === 'distinction'), color: 'var(--dist)' },
           ].map(({ label, secs, color }) => {
-            const done = secs.filter(s => completed.includes(s.id)).length
+            const done = secs.filter(s => verifiedCompleted.includes(s.id)).length
             return (
               <div key={label} style={{ marginBottom: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
