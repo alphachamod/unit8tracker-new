@@ -953,9 +953,10 @@ function StudentModal({ student, onClose, onSave }) {
       }
     })
 
-    // Recompute badges entirely from verified sections — no accumulation
-    // This means un-verifying a section correctly removes badges that depended on it
-    const allBadges = checkBadges(finalSections, 0, student.streak || 1, overrides)
+    // Badges earned from ALL completed sections (self-reported) — not verified-only
+    // Verified XP is computed separately at display time via calcVerifiedXP
+    const newBadges = checkBadges(finalSections, 0, student.streak || 1, {})
+    const allBadges = [...new Set([...(student.badges || []), ...newBadges])]
     const newXP = calcXP(finalSections, allBadges, newEarlyBonuses)
 
     await saveTutorOverrides(student.studentId, {
