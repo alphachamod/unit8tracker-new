@@ -145,7 +145,7 @@ export function listenToAllStudents(callback) {
   return () => off(r);
 }
 
-export async function saveTutorOverrides(studentId, { completedSections, xp, badges, tutorOverrides, tutorNote, earlyBonuses, verifyTimestamps }) {
+export async function saveTutorOverrides(studentId, { completedSections, xp, badges, tutorOverrides, tutorNote, earlyBonuses, verifyTimestamps, milestoneBonus }) {
   await update(studentRef(studentId), {
     completedSections,
     xp,
@@ -154,6 +154,7 @@ export async function saveTutorOverrides(studentId, { completedSections, xp, bad
     tutorNote,
     earlyBonuses: earlyBonuses || {},
     verifyTimestamps: verifyTimestamps || {},
+    milestoneBonus: milestoneBonus || 0,
     lastSeen: Date.now(),
   });
 }

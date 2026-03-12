@@ -5,6 +5,7 @@ import { SECTIONS, BADGES, TOTAL_XP, PASS_XP, PASS_MERIT_XP, calcXP, calcMilesto
 import HomePage from './student/HomePage'
 import TimelinePage from './student/TimelinePage'
 import SectionsPage from './student/SectionsPage'
+import BadgesPage from './student/BadgesPage'
 import LeaderboardPage from './student/LeaderboardPage'
 import IntegrityPage from './student/IntegrityPage'
 import ResourcesPage from './student/ResourcesPage'
@@ -17,6 +18,7 @@ const NAV_ITEMS = [
   { id:'home', label:'Home', emoji:'🏠' },
   { id:'timeline', label:'Timeline', emoji:'📅' },
   { id:'sections', label:'Sections', emoji:'📋' },
+  { id:'badges', label:'Badges', emoji:'🏅' },
   { id:'leaderboard', label:'Board', emoji:'🏆' },
   { id:'integrity', label:'Integrity', emoji:'⚠️' },
   { id:'resources', label:'Resources', emoji:'🔗' },
@@ -249,6 +251,7 @@ export default function StudentApp({ student, setStudent, onLogout }) {
             {page === 'home'        && <HomePage student={student} onToggleSection={toggleSection} onNavigate={navigateTo} />}
             {page === 'timeline'    && <TimelinePage student={student} />}
             {page === 'sections'    && <SectionsPage student={student} onToggleSection={toggleSection} />}
+            {page === 'badges'      && <BadgesPage student={student} />}
             {page === 'leaderboard' && <LeaderboardPage student={student} />}
             {page === 'integrity'   && <IntegrityPage />}
             {page === 'resources'   && <ResourcesPage />}

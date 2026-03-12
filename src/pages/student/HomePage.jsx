@@ -60,7 +60,7 @@ export default function HomePage({ student, onNavigate }) {
   const now = Date.now()
   const elapsedDays  = Math.max(1, (now - START_DATE.getTime()) / 86400000)
   const daysLeft     = Math.max(0, (DEADLINE.getTime() - now) / 86400000)
-  const verifiedXP   = calcVerifiedXP(student.completedSections, student.badges, student.tutorOverrides, student.earlyBonuses)
+  const verifiedXP   = calcVerifiedXP(student.completedSections, student.badges, student.tutorOverrides, student.earlyBonuses, student.milestoneBonus || 0)
   const baseVerified = SECTIONS.filter(s => (student.tutorOverrides || {})[s.id] === true).reduce((a, s) => a + s.xp, 0)
   const dailyRate    = baseVerified / elapsedDays
   const projectedXP  = Math.min(TOTAL_XP, Math.round(verifiedXP + dailyRate * daysLeft))

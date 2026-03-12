@@ -179,29 +179,32 @@ export function calcXP(completedSections, badges, earlyBonuses = {}, storedMiles
 }
 
 // Verified-only XP — used for leaderboard (no self-reported sections count)
-export function calcVerifiedXP(completedSections, badges, tutorOverrides, earlyBonuses = {}) {
+export function calcVerifiedXP(completedSections, badges, tutorOverrides, earlyBonuses = {}, storedMilestone = 0) {
   const verifiedSections = (completedSections || []).filter(id => tutorOverrides?.[id] === true);
   const base = SECTIONS.filter(s => verifiedSections.includes(s.id)).reduce((a, s) => a + s.xp, 0);
   // Only count badge XP if the badge's condition is met by verified sections alone
+  // Pass days elapsed so time-based badges (Head Start, Speedrunner etc.) evaluate correctly
+  const days = getDaysElapsed();
   const badgeBonus = (badges || []).reduce((a, bid) => {
     const b = BADGES.find(x => x.id === bid);
     if (!b) return a;
-    const earnedByVerified = b.condition ? b.condition(verifiedSections) : false;
+    const earnedByVerified = b.condition ? b.condition(verifiedSections, 0, 1, days, tutorOverrides) : false;
     return earnedByVerified ? a + (b.xpBonus || 0) : a;
   }, 0);
   const earlyTotal = Object.entries(earlyBonuses || {})
     .filter(([id]) => tutorOverrides?.[id] === true)
     .reduce((a, [, v]) => a + (v || 0), 0);
-  const milestoneBonus = calcMilestoneBonus(verifiedSections, 0);
+  // Use stored milestone — milestone was earned at a point in time, can't be recalculated from today's date
+  const milestoneBonus = storedMilestone || calcMilestoneBonus(verifiedSections, 0);
   return base + badgeBonus + milestoneBonus + earlyTotal;
 }
 
-export function checkBadges(completedSections, xp, streak, tutorOverrides = {}) {
+export function checkBadges(completedSections, xp, streak, tutorOverrides = {}, milestoneBonus = 0) {
   const days = getDaysElapsed();
   // Only tutor-verified sections count towards badges
   const verifiedSections = completedSections.filter(id => tutorOverrides[id] === true);
   return BADGES
-    .filter(b => b.condition(verifiedSections, xp, streak, days, tutorOverrides))
+    .filter(b => b.condition(verifiedSections, xp, streak, days, tutorOverrides, milestoneBonus))
     .map(b => b.id);
 }
 
@@ -248,6 +251,15 @@ export const BADGES = [
     condition: (c,xp,s,d,ov) => SECTIONS.every(x => ov && ov[x.id] === true) },
   { id:'no_rejected',   icon:'🛡️', xpBonus:100, name:'Clean Sheet',    desc:'Pass complete, zero rejections',
     condition: (c,xp,s,d,ov) => SECTIONS.filter(x=>x.band==='pass').every(x=>c.includes(x.id)) && (!ov||!Object.values(ov).includes(false)) },
+  // Milestone badges — awarded based on stored milestoneBonus value
+  { id:'milestone_120', icon:'🏅', xpBonus:0, name:'Week 1 Sprint',   desc:'Completed all of Section 2 (P3) within the first 7 days', isMilestone: true,
+    condition: (c,xp,s,d,ov,mb) => (mb || 0) >= 120 },
+  { id:'milestone_200', icon:'🥇', xpBonus:0, name:'Pass Rusher',     desc:'Completed all Pass sections within 3 weeks', isMilestone: true,
+    condition: (c,xp,s,d,ov,mb) => (mb || 0) >= 200 },
+  { id:'milestone_300', icon:'🏆', xpBonus:0, name:'Merit Sprinter',  desc:'Completed all Merit sections within 4 weeks', isMilestone: true,
+    condition: (c,xp,s,d,ov,mb) => (mb || 0) >= 300 },
+  { id:'milestone_500', icon:'👑', xpBonus:0, name:'Full Send',       desc:'Completed everything within 5 weeks', isMilestone: true,
+    condition: (c,xp,s,d,ov,mb) => (mb || 0) >= 500 },
 ];
 
 export const SECTION_POPUPS = {
