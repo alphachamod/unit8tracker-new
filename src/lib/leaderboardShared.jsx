@@ -337,6 +337,9 @@ function PodiumCard({ student, rank, isMe, isStudent, onSelect, rankDelta }) {
   const displayName = isStudent
     ? (isMe ? student.name?.split(' ')[0] : student.name?.split(' ')[0] || 'Student')
     : student.name?.split(' ')[0] || student.name
+  const group      = STUDENT_GROUPS[student.studentId]
+  const groupColor = group === 'A' ? '#60A5FA' : group === 'B' ? '#C084FC' : group === 'C' ? '#34D399' : 'rgba(255,255,255,0.4)'
+  const groupBg    = group === 'A' ? 'rgba(96,165,250,0.15)' : group === 'B' ? 'rgba(192,132,252,0.15)' : group === 'C' ? 'rgba(52,211,153,0.15)' : 'rgba(255,255,255,0.05)'
 
   const cfg = {
     1: { avatarSize:72, fontSize:28, stageH:90, medal:'🥇', label:'1st',
@@ -439,6 +442,16 @@ function PodiumCard({ student, rank, isMe, isStudent, onSelect, rankDelta }) {
         marginBottom:2, textShadow:'0 1px 5px rgba(0,0,0,0.5)',
       }}>{displayName}</div>
 
+      {/* Group badge */}
+      {group && (
+        <div style={{
+          fontFamily:'var(--font-mono)', fontSize:9, fontWeight:700,
+          background: groupBg, color: groupColor,
+          padding:'1px 7px', borderRadius:99,
+          border:`1px solid ${groupColor}55`, marginBottom:4,
+        }}>Grp {group}</div>
+      )}
+
       {/* XP */}
       <div style={{
         fontFamily:'var(--font-mono)', fontSize: rank===1 ? 12 : 10,
@@ -498,33 +511,36 @@ function TierDivider({ label, color, bg }) {
 
 export function LeaderboardList({ students, isStudent = false, currentStudentId = null }) {
   const [breakdown, setBreakdown] = useState(null)
+  const [groupFilter, setGroupFilter] = useState('all')
 
   // ── Rank change tracking via sessionStorage ──
-  // On first load we store the order; on subsequent renders we diff it
+  // Ranks always based on full cohort so they stay consistent
   const sorted = [...students].sort((a, b) => getVerifiedXP(b) - getVerifiedXP(a))
   const SESSION_KEY = 'lb_prev_ranks'
   const prevRanks = (() => {
     try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null') } catch { return null }
   })()
-  // Build current rank map and persist it
   const currentRanks = {}
   sorted.forEach((s, i) => { currentRanks[s.studentId] = i + 1 })
   try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(currentRanks)) } catch {}
+
+  // Apply group filter AFTER rank calculation so ranks stay consistent
+  const displayed = groupFilter === 'all' ? sorted
+    : sorted.filter(s => STUDENT_GROUPS[s.studentId] === groupFilter)
 
   function getRankDelta(studentId) {
     if (!prevRanks || !(studentId in prevRanks)) return null
     const prev = prevRanks[studentId]
     const curr = currentRanks[studentId]
-    return prev - curr  // positive = moved up (lower rank number = better)
+    return prev - curr
   }
 
-  const top3   = sorted.slice(0, 3)
-  const rest   = sorted.slice(3)
-  const top5   = rest.slice(0, 2)   // ranks 4–5
-  const top10  = rest.slice(2, 7)   // ranks 6–10
-  const others = rest.slice(7)      // rank 11+
+  const top3   = displayed.slice(0, 3)
+  const rest   = displayed.slice(3)
+  const top5   = rest.slice(0, 2)
+  const top10  = rest.slice(2, 7)
+  const others = rest.slice(7)
 
-  // Visual podium order: 2nd left, 1st centre, 3rd right
   const podiumOrder = top3.length === 3 ? [top3[1], top3[0], top3[2]] : top3
 
   function openBreakdown(s) {
@@ -594,7 +610,7 @@ export function LeaderboardList({ students, isStudent = false, currentStudentId 
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
               <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>{displayName}</span>
-              {!isStudent && group && (
+              {group && (
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700,
                   background: groupBg, color: groupColor, padding: '1px 5px', borderRadius: 3 }}>{group}</span>
               )}
@@ -681,6 +697,32 @@ export function LeaderboardList({ students, isStudent = false, currentStudentId 
         )}
       </AnimatePresence>
 
+      {/* ── Group filter buttons ── */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
+        {['all', 'A', 'B', 'C'].map(g => {
+          const count = g === 'all' ? students.length : students.filter(s => STUDENT_GROUPS[s.studentId] === g).length
+          const active = groupFilter === g
+          return (
+            <button key={g} onClick={() => setGroupFilter(g)}
+              style={{
+                padding: '6px 14px', borderRadius: 8, fontSize: 12, fontWeight: 700,
+                background: active ? 'var(--navy)' : 'var(--white)',
+                color: active ? '#fff' : 'var(--slate)',
+                border: `1.5px solid ${active ? 'var(--navy)' : 'var(--border)'}`,
+                cursor: 'pointer', transition: 'all 0.15s',
+              }}>
+              {g === 'all' ? `All (${count})` : `Group ${g} (${count})`}
+            </button>
+          )
+        })}
+        {groupFilter !== 'all' && (
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--slate)',
+            alignSelf: 'center', marginLeft: 4 }}>
+            ranks based on full cohort
+          </span>
+        )}
+      </div>
+
       {/* ── Podium (top 3) ── */}
       {top3.length > 0 && (
         <motion.div
@@ -694,13 +736,11 @@ export function LeaderboardList({ students, isStudent = false, currentStudentId 
             overflow: 'hidden', position: 'relative',
             border: '1px solid rgba(255,255,255,0.06)',
           }}>
-          {/* Spotlight glow behind 1st place */}
           <div style={{
             position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)',
             width: '60%', height: '80%', pointerEvents: 'none',
             background: 'radial-gradient(ellipse at 50% 10%, rgba(253,211,77,0.1) 0%, transparent 65%)',
           }} />
-          {/* Floor line */}
           <div style={{
             position: 'absolute', bottom: 0, left: 0, right: 0, height: 1,
             background: 'linear-gradient(90deg, transparent, rgba(253,211,77,0.3), transparent)',
@@ -714,17 +754,20 @@ export function LeaderboardList({ students, isStudent = false, currentStudentId 
           </div>
 
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, position: 'relative' }}>
-            {(top3.length === 3 ? podiumOrder : top3).map(s => (
-              <PodiumCard
-                key={s.studentId}
-                student={s}
-                rank={sorted.indexOf(s) + 1}
-                isMe={s.studentId === currentStudentId}
-                isStudent={isStudent}
-                onSelect={openBreakdown}
-                rankDelta={getRankDelta(s.studentId)}
-              />
-            ))}
+            {(top3.length === 3 ? podiumOrder : top3).map((s, posInPodium) => {
+              const rank = top3.length === 3 ? [2, 1, 3][posInPodium] : posInPodium + 1
+              return (
+                <PodiumCard
+                  key={s.studentId}
+                  student={s}
+                  rank={rank}
+                  isMe={s.studentId === currentStudentId}
+                  isStudent={isStudent}
+                  onSelect={openBreakdown}
+                  rankDelta={getRankDelta(s.studentId)}
+                />
+              )
+            })}
           </div>
         </motion.div>
       )}

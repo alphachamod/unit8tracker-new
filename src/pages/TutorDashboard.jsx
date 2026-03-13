@@ -803,6 +803,9 @@ function PodiumCard({ student, rank, onSelect, rankDelta }) {
   const { g, c } = gradeLabel(vXP, student)
   const initial = student.name?.[0] || '?'
   const displayName = student.name?.split(' ')[0] || student.name
+  const group      = STUDENT_GROUPS[student.studentId]
+  const groupColor = group === 'A' ? '#60A5FA' : group === 'B' ? '#C084FC' : group === 'C' ? '#34D399' : 'rgba(255,255,255,0.4)'
+  const groupBg    = group === 'A' ? 'rgba(96,165,250,0.15)' : group === 'B' ? 'rgba(192,132,252,0.15)' : group === 'C' ? 'rgba(52,211,153,0.15)' : 'transparent'
 
   const configs = {
     1: {
@@ -899,6 +902,16 @@ function PodiumCard({ student, rank, onSelect, rankDelta }) {
         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         marginBottom: 2, textShadow: '0 1px 4px rgba(0,0,0,0.5)',
       }}>{displayName}</div>
+
+      {/* Group badge */}
+      {group && (
+        <div style={{
+          fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700,
+          background: groupBg, color: groupColor,
+          padding: '1px 7px', borderRadius: 99,
+          border: `1px solid ${groupColor}55`, marginBottom: 4,
+        }}>Grp {group}</div>
+      )}
 
       {/* XP */}
       <div style={{
