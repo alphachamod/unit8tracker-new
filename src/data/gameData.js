@@ -178,24 +178,32 @@ export function calcXP(completedSections, badges, earlyBonuses = {}, storedMiles
   return base + badgeBonus + milestoneBonus + earlyTotal;
 }
 
-// Verified-only XP — used for leaderboard (no self-reported sections count)
+// Verified-only XP — used for leaderboard
 export function calcVerifiedXP(completedSections, badges, tutorOverrides, earlyBonuses = {}, storedMilestone = 0) {
   const verifiedSections = (completedSections || []).filter(id => tutorOverrides?.[id] === true);
   const base = SECTIONS.filter(s => verifiedSections.includes(s.id)).reduce((a, s) => a + s.xp, 0);
-  // Only count badge XP if the badge's condition is met by verified sections alone
-  // Pass days elapsed so time-based badges (Head Start, Speedrunner etc.) evaluate correctly
-  const days = getDaysElapsed();
+
+  // Trust badges the student has earned — awarded at submission time, not re-evaluated
   const badgeBonus = (badges || []).reduce((a, bid) => {
     const b = BADGES.find(x => x.id === bid);
-    if (!b) return a;
-    const earnedByVerified = b.condition ? b.condition(verifiedSections, 0, 1, days, tutorOverrides) : false;
-    return earnedByVerified ? a + (b.xpBonus || 0) : a;
+    return a + (b?.xpBonus || 0);
   }, 0);
+
   const earlyTotal = Object.entries(earlyBonuses || {})
     .filter(([id]) => tutorOverrides?.[id] === true)
     .reduce((a, [, v]) => a + (v || 0), 0);
-  // Use stored milestone — milestone was earned at a point in time, can't be recalculated from today's date
-  const milestoneBonus = storedMilestone || calcMilestoneBonus(verifiedSections, 0);
+
+  // Milestone: recalculate from verified sections (no time gate), cap at what was actually earned
+  const passIds  = SECTIONS.filter(x => x.band === 'pass').map(x => x.id)
+  const meritIds = SECTIONS.filter(x => x.band !== 'distinction').map(x => x.id)
+  const week1Ids = ['s1','s2a','s2b','s2c','s2d','s2e','s2f','s2g']
+  let milestoneBonus = 0
+  if (week1Ids.every(id => verifiedSections.includes(id)))   milestoneBonus = Math.max(milestoneBonus, 120)
+  if (passIds.every(id => verifiedSections.includes(id)))    milestoneBonus = Math.max(milestoneBonus, 200)
+  if (meritIds.every(id => verifiedSections.includes(id)))   milestoneBonus = Math.max(milestoneBonus, 300)
+  if (SECTIONS.every(x => verifiedSections.includes(x.id))) milestoneBonus = Math.max(milestoneBonus, 500)
+  milestoneBonus = Math.min(milestoneBonus, storedMilestone || milestoneBonus)
+
   return base + badgeBonus + milestoneBonus + earlyTotal;
 }
 
