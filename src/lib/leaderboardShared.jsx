@@ -75,14 +75,19 @@ export function XPBreakdownModal({ student, onClose, isStudent = false }) {
   const verifiedIds = verified.map(s => s.id)
 
   const baseXP = verified.reduce((a, s) => a + s.xp, 0)
-  const badgeXP = earnedBadges.reduce((a, b) => {
-    const earned = b.condition ? b.condition(verifiedIds, 0, student.streak || 1, getDaysElapsed(), student.tutorOverrides, student.milestoneBonus || 0) : false
-    return earned ? a + (b.xpBonus || 0) : a
-  }, 0)
+  // Trust earned badges — they were awarded at submission time
+  const badgeXP = earnedBadges.reduce((a, b) => a + (b.xpBonus || 0), 0)
   const earlyXP = Object.entries(earlyBonuses)
     .filter(([id]) => student.tutorOverrides?.[id] === true)
     .reduce((a, [, v]) => a + v, 0)
-  const milestoneXP = student.milestoneBonus || 0
+  // Milestone: only count if verified sections satisfy the tier, capped at what was earned
+  const week1Ids = ['s1','s2a','s2b','s2c','s2d','s2e','s2f','s2g']
+  let milestoneXP = 0
+  if (week1Ids.every(id => verifiedIds.includes(id)))   milestoneXP = Math.max(milestoneXP, 120)
+  if (PASS_IDS.every(id => verifiedIds.includes(id)))   milestoneXP = Math.max(milestoneXP, 200)
+  if ([...PASS_IDS,...MERIT_IDS].every(id => verifiedIds.includes(id))) milestoneXP = Math.max(milestoneXP, 300)
+  if ([...PASS_IDS,...MERIT_IDS,...DIST_IDS].every(id => verifiedIds.includes(id))) milestoneXP = Math.max(milestoneXP, 500)
+  milestoneXP = Math.min(milestoneXP, student.milestoneBonus || milestoneXP)
   const totalVerifiedXP = baseXP + badgeXP + earlyXP + milestoneXP
 
   const bandColors = {
