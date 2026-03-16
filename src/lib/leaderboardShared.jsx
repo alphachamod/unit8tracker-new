@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   SECTIONS, BADGES, TOTAL_XP, PASS_XP, PASS_MERIT_XP,
@@ -513,25 +513,41 @@ export function LeaderboardList({ students, isStudent = false, currentStudentId 
   const [breakdown, setBreakdown] = useState(null)
   const [groupFilter, setGroupFilter] = useState('all')
 
-  // ── Rank change tracking via sessionStorage ──
-  // Ranks always based on full cohort so they stay consistent
-  const sorted = [...students].sort((a, b) => getVerifiedXP(b) - getVerifiedXP(a))
   const SESSION_KEY = 'lb_prev_ranks'
-  const prevRanks = (() => {
-    try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null') } catch { return null }
-  })()
+
+  const sorted = [...students].sort((a, b) => getVerifiedXP(b) - getVerifiedXP(a))
   const currentRanks = {}
   sorted.forEach((s, i) => { currentRanks[s.studentId] = i + 1 })
-  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(currentRanks)) } catch {}
+
+  // Snapshot read once on mount — never overwritten mid-session
+  const snapshotRef = useRef(null)
+  if (snapshotRef.current === null) {
+    try {
+      const stored = sessionStorage.getItem(SESSION_KEY)
+      if (stored) {
+        snapshotRef.current = JSON.parse(stored)
+      } else {
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify(currentRanks))
+        snapshotRef.current = {}
+      }
+    } catch (e) {
+      snapshotRef.current = {}
+    }
+  }
+
+  // Keep snapshot fresh for next page load
+  useEffect(() => {
+    try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(currentRanks)) } catch (e) {}
+  })
 
   // Apply group filter AFTER rank calculation so ranks stay consistent
   const displayed = groupFilter === 'all' ? sorted
     : sorted.filter(s => STUDENT_GROUPS[s.studentId] === groupFilter)
 
   function getRankDelta(studentId) {
-    if (!prevRanks || !(studentId in prevRanks)) return null
-    const prev = prevRanks[studentId]
+    const prev = snapshotRef.current?.[studentId]
     const curr = currentRanks[studentId]
+    if (prev == null || curr == null) return null
     return prev - curr
   }
 

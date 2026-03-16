@@ -797,159 +797,271 @@ function RankChange({ delta }) {
   )
 }
 
-// ─── Podium card (top 3) ──────────────────────────────────────
-function PodiumCard({ student, rank, onSelect, rankDelta }) {
-  const vXP = getVerifiedXP(student)
-  const { g, c } = gradeLabel(vXP, student)
-  const initial = student.name?.[0] || '?'
-  const displayName = student.name?.split(' ')[0] || student.name
-  const group      = STUDENT_GROUPS[student.studentId]
-  const groupColor = group === 'A' ? '#60A5FA' : group === 'B' ? '#C084FC' : group === 'C' ? '#34D399' : 'rgba(255,255,255,0.4)'
-  const groupBg    = group === 'A' ? 'rgba(96,165,250,0.15)' : group === 'B' ? 'rgba(192,132,252,0.15)' : group === 'C' ? 'rgba(52,211,153,0.15)' : 'transparent'
+// ─── Podium top-3 block (single unified layout matching reference) ──────────
+function PodiumTop3({ students, onSelect, getRankDelta }) {
+  const [s2, s1, s3] = students
 
-  const configs = {
-    1: {
-      avatarSize: 72, fontSize: 28, colHeight: 96,
-      medal: '🥇', rankLabel: '1st',
-      avatarBg: 'linear-gradient(145deg,#FDE68A,#F59E0B)',
-      avatarBorder: '#F59E0B',
-      glow: '0 0 0 4px rgba(245,158,11,0.25), 0 12px 32px rgba(245,158,11,0.35)',
-      colBg: 'linear-gradient(180deg,rgba(253,211,77,0.18) 0%,rgba(253,211,77,0.06) 100%)',
-      colBorder: 'rgba(253,211,77,0.45)',
-      xpColor: '#FCD34D',
-    },
-    2: {
-      avatarSize: 58, fontSize: 22, colHeight: 68,
-      medal: '🥈', rankLabel: '2nd',
-      avatarBg: 'linear-gradient(145deg,#E2E8F0,#94A3B8)',
-      avatarBorder: '#94A3B8',
-      glow: '0 0 0 3px rgba(148,163,184,0.25), 0 8px 24px rgba(148,163,184,0.3)',
-      colBg: 'linear-gradient(180deg,rgba(203,213,225,0.18) 0%,rgba(203,213,225,0.06) 100%)',
-      colBorder: 'rgba(203,213,225,0.4)',
-      xpColor: '#CBD5E1',
-    },
-    3: {
-      avatarSize: 52, fontSize: 20, colHeight: 48,
-      medal: '🥉', rankLabel: '3rd',
-      avatarBg: 'linear-gradient(145deg,#FCD34D,#B45309)',
-      avatarBorder: '#CD7F32',
-      glow: '0 0 0 3px rgba(205,127,50,0.2), 0 8px 20px rgba(205,127,50,0.3)',
-      colBg: 'linear-gradient(180deg,rgba(205,127,50,0.18) 0%,rgba(205,127,50,0.06) 100%)',
-      colBorder: 'rgba(205,127,50,0.4)',
-      xpColor: '#F0A060',
-    },
+  const RING1 = { size: 120, inner: 100, color: '#22c55e', glow: 'rgba(34,197,94,0.75)' }
+  const RING2 = { size: 88,  inner: 72,  color: '#22c55e', glow: 'rgba(34,197,94,0.55)' }
+  const RING3 = { size: 88,  inner: 72,  color: '#22c55e', glow: 'rgba(34,197,94,0.55)' }
+
+  function Avatar({ s, ring, rank, delay, floatY, initAnim }) {
+    const initial = s?.name?.[0] || '?'
+    const delta = getRankDelta(s?.studentId)
+    const bgMap = {
+      1: 'linear-gradient(135deg,#14532d 0%,#166534 50%,#15803d 100%)',
+      2: 'linear-gradient(135deg,#1e3a5f 0%,#1e40af 60%,#1d4ed8 100%)',
+      3: 'linear-gradient(135deg,#431407 0%,#9a3412 50%,#b45309 100%)',
+    }
+    return (
+      <motion.div
+        initial={initAnim}
+        animate={{ opacity: 1, y: 0, x: 0, scale: 1 }}
+        transition={{ delay, type: 'spring', stiffness: 200, damping: 20 }}
+        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }}
+        onClick={() => onSelect(s)}>
+
+        {/* Crown (1st) or rank number (2nd/3rd) */}
+        <div style={{ height: 32, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', marginBottom: 2 }}>
+          {rank === 1 ? (
+            <motion.div
+              initial={{ opacity: 0, y: -10, scale: 0.4 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ delay: delay + 0.25, type: 'spring', stiffness: 300, damping: 14 }}
+              style={{ fontSize: 24, lineHeight: 1, filter: 'drop-shadow(0 0 14px rgba(253,211,77,1))' }}>
+              👑
+            </motion.div>
+          ) : (
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 16, fontWeight: 900, color: '#22c55e',
+              textShadow: '0 0 12px rgba(34,197,94,0.8)', lineHeight: 1 }}>{rank}</div>
+          )}
+        </div>
+
+        {/* Rank-change badge — shows arrow + number */}
+        <div style={{ height: 18, marginBottom: 3, display: 'flex', alignItems: 'center' }}>
+          {delta !== null && delta !== 0 ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: delay + 0.4, type: 'spring', stiffness: 400 }}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 2,
+                fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 800,
+                color: delta > 0 ? '#4ADE80' : '#F87171',
+                background: delta > 0 ? 'rgba(74,222,128,0.18)' : 'rgba(248,113,113,0.18)',
+                border: `1px solid ${delta > 0 ? 'rgba(74,222,128,0.45)' : 'rgba(248,113,113,0.45)'}`,
+                borderRadius: 5, padding: '1px 5px',
+              }}>
+              {delta > 0 ? '▲' : '▼'} {Math.abs(delta)}
+            </motion.div>
+          ) : (
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'rgba(255,255,255,0.2)' }}>—</span>
+          )}
+        </div>
+
+        {/* Ring + avatar */}
+        <motion.div
+          animate={{ y: floatY }}
+          transition={{ duration: rank === 1 ? 3.2 : 3.8, repeat: Infinity, ease: 'easeInOut' }}
+          whileHover={{ scale: 1.06 }}
+          style={{ position: 'relative' }}>
+          <motion.div
+            animate={{ scale: [1, 1.1, 1], opacity: [0.45, 0.1, 0.45] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut', delay }}
+            style={{
+              position: 'absolute', inset: -6, borderRadius: '50%',
+              border: `2px solid ${ring.color}`,
+              boxShadow: `0 0 20px ${ring.glow}`,
+              pointerEvents: 'none',
+            }}/>
+          <div style={{
+            width: ring.size, height: ring.size, borderRadius: '50%',
+            border: `3px solid ${ring.color}`,
+            boxShadow: `0 0 28px ${ring.glow}, 0 0 56px ${ring.glow}44`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(0,20,10,0.35)',
+          }}>
+            <div style={{
+              width: ring.inner, height: ring.inner, borderRadius: '50%',
+              background: bgMap[rank],
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: 'var(--font-head)', fontSize: Math.round(ring.inner * 0.4),
+              fontWeight: 900, color: '#fff', userSelect: 'none',
+              textShadow: '0 2px 10px rgba(0,0,0,0.6)',
+              border: '2px solid rgba(255,255,255,0.12)',
+            }}>{initial}</div>
+          </div>
+        </motion.div>
+      </motion.div>
+    )
   }
-  const cfg = configs[rank]
-  const initAnim = rank === 1 ? { opacity: 0, y: -24, scale: 0.88 }
-    : rank === 2 ? { opacity: 0, x: -18, scale: 0.92 }
-    : { opacity: 0, x: 18, scale: 0.92 }
-  const delay = rank === 1 ? 0.08 : rank === 2 ? 0.22 : 0.28
+
+  function Meta({ s, rank, delay }) {
+    const name = s?.name?.split(' ')[0] || 'Student'
+    const vXP = getVerifiedXP(s || {})
+    const { g, c } = gradeLabel(vXP, s || {})
+    const group = STUDENT_GROUPS[s?.studentId]
+    const groupColor = group === 'A' ? '#60A5FA' : group === 'B' ? '#C084FC' : group === 'C' ? '#34D399' : '#94A3B8'
+    const earnedBadges = BADGES.filter(b => (s?.badges || []).includes(b.id))
+    const streak = s?.streak || 0
+    const schedStatus = getScheduleStatus(s?.completedSections || [])
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: delay + 0.2 }}
+        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+
+        {/* Name */}
+        <div style={{ fontSize: rank === 1 ? 13 : 12, fontWeight: 700, color: '#e2e8f0',
+          textAlign: 'center', maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          @{name}
+        </div>
+
+        {/* Group + schedule status */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap', justifyContent: 'center' }}>
+          {group && (
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, color: groupColor }}>Grp {group}</div>
+          )}
+          {schedStatus && (
+            <span style={{
+              fontFamily: 'var(--font-mono)', fontSize: 8, fontWeight: 700,
+              background: schedStatus.bg, color: schedStatus.color,
+              border: `1px solid ${schedStatus.border}`, padding: '1px 5px', borderRadius: 4,
+            }}>{schedStatus.label}</span>
+          )}
+        </div>
+
+        {/* XP */}
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: rank === 1 ? 20 : 16,
+          fontWeight: 900, color: '#22c55e',
+          textShadow: '0 0 14px rgba(34,197,94,0.7)',
+          letterSpacing: '-0.01em', lineHeight: 1.1 }}>
+          {vXP.toLocaleString()}
+        </div>
+
+        {/* Grade pill */}
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700,
+          background: c + '22', color: c, padding: '1px 7px',
+          borderRadius: 99, border: `1px solid ${c}44` }}>{g || '—'}</div>
+
+        {/* Streak + badge count */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {streak > 1 && (
+            <motion.div
+              animate={{ scale: [1, 1.15, 1] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+              style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 800,
+                color: '#FB923C', textShadow: '0 0 8px rgba(251,146,60,0.7)' }}>
+              🔥 {streak}d
+            </motion.div>
+          )}
+          {earnedBadges.length > 0 && (
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700,
+              color: '#FCD34D', textShadow: '0 0 8px rgba(253,211,77,0.6)' }}>
+              🏅 {earnedBadges.length}
+            </div>
+          )}
+        </div>
+
+        {/* Badge icons (up to 4) */}
+        {earnedBadges.length > 0 && (
+          <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap', justifyContent: 'center', maxWidth: 130 }}>
+            {earnedBadges.slice(0, rank === 1 ? 4 : 3).map(b => (
+              <motion.div key={b.id}
+                initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: delay + 0.4 + earnedBadges.indexOf(b) * 0.06, type: 'spring', stiffness: 400 }}
+                title={`${b.name} +${b.xpBonus}XP`}
+                style={{
+                  background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
+                  borderRadius: 5, padding: '2px 5px', fontSize: 10,
+                  display: 'flex', alignItems: 'center', gap: 2,
+                }}>
+                <span>{b.icon}</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: '#FCD34D', fontWeight: 700 }}>+{b.xpBonus}</span>
+              </motion.div>
+            ))}
+            {earnedBadges.length > (rank === 1 ? 4 : 3) && (
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'rgba(255,255,255,0.4)',
+                alignSelf: 'center' }}>+{earnedBadges.length - (rank === 1 ? 4 : 3)} more</div>
+            )}
+          </div>
+        )}
+      </motion.div>
+    )
+  }
+
+  // Column widths mirror ring sizes so text centres under each avatar
+  const COL1 = RING1.size + 40   // 160px
+  const COL2 = RING2.size + 32   // 120px
 
   return (
-    <motion.div
-      initial={initAnim}
-      animate={{ opacity: 1, y: 0, x: 0, scale: 1 }}
-      transition={{ delay, type: 'spring', stiffness: 240, damping: 22 }}
-      onClick={() => onSelect(student)}
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center',
-        cursor: 'pointer', flex: 1, minWidth: 0, position: 'relative' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
 
-      {/* Rank change indicator */}
-      <div style={{ height: 22, marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {rankDelta !== null && rankDelta !== 0 ? (
-          <motion.span
-            initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: delay + 0.3, type: 'spring', stiffness: 400 }}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 2,
-              fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 800,
-              color: rankDelta > 0 ? '#4ADE80' : '#F87171',
-              background: rankDelta > 0 ? 'rgba(74,222,128,0.18)' : 'rgba(248,113,113,0.18)',
-              border: `1px solid ${rankDelta > 0 ? 'rgba(74,222,128,0.4)' : 'rgba(248,113,113,0.4)'}`,
-              borderRadius: 5, padding: '1px 6px',
-            }}>
-            {rankDelta > 0 ? '▲' : '▼'}{Math.abs(rankDelta)}
-          </motion.span>
-        ) : <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-mono)' }}>—</span>}
+      {/* Spotlight beam — centred on 1st place column */}
+      <div style={{
+        position: 'absolute',
+        top: 0, left: '50%', transform: 'translateX(-50%)',
+        width: COL1, height: '100%',
+        pointerEvents: 'none', zIndex: 0,
+        background: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(253,211,77,0.18) 0%, rgba(253,211,77,0.06) 40%, transparent 70%)',
+      }}/>
+      {/* Animated sweep — slow pulse */}
+      <motion.div
+        animate={{ opacity: [0.6, 1, 0.6] }}
+        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+        style={{
+          position: 'absolute',
+          top: 0, left: '50%', transform: 'translateX(-50%)',
+          width: COL1 * 0.6, height: '85%',
+          pointerEvents: 'none', zIndex: 0,
+          background: 'radial-gradient(ellipse 60% 50% at 50% 0%, rgba(253,211,77,0.12) 0%, transparent 65%)',
+        }}/>
+      {/* Floor glow dot under 1st */}
+      <motion.div
+        animate={{ opacity: [0.4, 0.9, 0.4], scaleX: [0.8, 1.1, 0.8] }}
+        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+        style={{
+          position: 'absolute',
+          bottom: 0, left: '50%', transform: 'translateX(-50%)',
+          width: COL1 * 0.7, height: 12,
+          pointerEvents: 'none', zIndex: 0,
+          background: 'radial-gradient(ellipse, rgba(253,211,77,0.35) 0%, transparent 70%)',
+          borderRadius: '50%',
+        }}/>
+
+      {/* Avatar row — fixed-width columns, 1st raised via paddingBottom */}
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', position: 'relative', zIndex: 1 }}>
+        <div style={{ width: COL2, display: 'flex', justifyContent: 'center' }}>
+          <Avatar s={s2} ring={RING2} rank={2} delay={0.2}
+            floatY={[0, -5, 0]} initAnim={{ opacity: 0, x: -24, scale: 0.85 }} />
+        </div>
+        {/* 1st sits higher: paddingBottom lifts it relative to sides */}
+        <div style={{ width: COL1, display: 'flex', justifyContent: 'center', paddingBottom: 34 }}>
+          <Avatar s={s1} ring={RING1} rank={1} delay={0.05}
+            floatY={[0, -9, 0]} initAnim={{ opacity: 0, y: -28, scale: 0.82 }} />
+        </div>
+        <div style={{ width: COL2, display: 'flex', justifyContent: 'center' }}>
+          <Avatar s={s3} ring={RING3} rank={3} delay={0.28}
+            floatY={[0, -5, 0]} initAnim={{ opacity: 0, x: 24, scale: 0.85 }} />
+        </div>
       </div>
 
-      {/* Avatar */}
-      <motion.div
-        whileHover={{ scale: 1.07, y: -4 }} whileTap={{ scale: 0.95 }}
-        transition={{ type: 'spring', stiffness: 380, damping: 20 }}
-        style={{ position: 'relative', marginBottom: 8 }}>
-        <div style={{
-          width: cfg.avatarSize, height: cfg.avatarSize, borderRadius: '50%',
-          background: cfg.avatarBg,
-          border: `3px solid ${cfg.avatarBorder}`,
-          boxShadow: cfg.glow,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontFamily: 'var(--font-head)', fontSize: cfg.fontSize, fontWeight: 900,
-          color: '#fff', userSelect: 'none',
-          textShadow: '0 2px 8px rgba(0,0,0,0.35)',
-        }}>{initial}</div>
-        <div style={{
-          position: 'absolute', bottom: -3, right: -5,
-          fontSize: rank === 1 ? 20 : 16, lineHeight: 1,
-          filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
-        }}>{cfg.medal}</div>
-      </motion.div>
-
-      {/* Name */}
-      <div style={{
-        fontSize: rank === 1 ? 13 : 12, fontWeight: 700, color: '#fff',
-        textAlign: 'center', maxWidth: 80,
-        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        marginBottom: 2, textShadow: '0 1px 4px rgba(0,0,0,0.5)',
-      }}>{displayName}</div>
-
-      {/* Group badge */}
-      {group && (
-        <div style={{
-          fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700,
-          background: groupBg, color: groupColor,
-          padding: '1px 7px', borderRadius: 99,
-          border: `1px solid ${groupColor}55`, marginBottom: 4,
-        }}>Grp {group}</div>
-      )}
-
-      {/* XP */}
-      <div style={{
-        fontFamily: 'var(--font-mono)', fontSize: rank === 1 ? 12 : 10,
-        fontWeight: 700, color: cfg.xpColor, marginBottom: 2,
-      }}>⬆ {vXP.toLocaleString()} XP</div>
-
-      {/* Grade pill */}
-      <div style={{
-        fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700,
-        background: c + '28', color: c, padding: '1px 8px',
-        borderRadius: 99, border: `1px solid ${c}44`, marginBottom: 10,
-      }}>{g || '—'}</div>
-
-      {/* Podium column — animated scaleY */}
-      <motion.div
-        initial={{ scaleY: 0 }} animate={{ scaleY: 1 }}
-        transition={{ delay: delay + 0.18, duration: 0.45, ease: [0.22, 1.2, 0.64, 1] }}
-        style={{ transformOrigin: 'bottom', width: '100%' }}>
-        <div style={{
-          width: '100%', height: cfg.colHeight,
-          borderRadius: '10px 10px 0 0',
-          background: cfg.colBg,
-          border: `1.5px solid ${cfg.colBorder}`,
-          borderBottom: 'none',
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center', gap: 3,
-        }}>
-          <div style={{
-            fontFamily: 'var(--font-mono)', fontSize: rank === 1 ? 20 : 15,
-            fontWeight: 900, color: cfg.xpColor, lineHeight: 1,
-          }}>{cfg.rankLabel}</div>
-          <div style={{ fontSize: rank === 1 ? 16 : 13 }}>{cfg.medal}</div>
+      {/* Meta row — same column widths, aligned under avatars */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', marginTop: 12, position: 'relative', zIndex: 1 }}>
+        <div style={{ width: COL2, display: 'flex', justifyContent: 'center' }}>
+          <Meta s={s2} rank={2} delay={0.2} />
         </div>
-      </motion.div>
-    </motion.div>
+        <div style={{ width: COL1, display: 'flex', justifyContent: 'center' }}>
+          <Meta s={s1} rank={1} delay={0.05} />
+        </div>
+        <div style={{ width: COL2, display: 'flex', justifyContent: 'center' }}>
+          <Meta s={s3} rank={3} delay={0.28} />
+        </div>
+      </div>
+    </div>
   )
 }
+
+
 
 // ─── Tier divider ─────────────────────────────────────────────
 function TierDivider({ label, color, bg }) {
@@ -971,24 +1083,46 @@ function LeaderboardTab({ students }) {
   const [breakdown, setBreakdown] = useState(null)
   const [groupFilter, setGroupFilter] = useState('all')
 
-  // Rank change tracking via sessionStorage
-  const sorted = [...students].sort((a, b) => getVerifiedXP(b) - getVerifiedXP(a))
   const SESSION_KEY = 'tutor_lb_prev_ranks'
-  const prevRanks = (() => {
-    try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null') } catch { return null }
-  })()
+
+  // Sort by current XP
+  const sorted = [...students].sort((a, b) => getVerifiedXP(b) - getVerifiedXP(a))
   const currentRanks = {}
   sorted.forEach((s, i) => { currentRanks[s.studentId] = i + 1 })
-  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(currentRanks)) } catch {}
+
+  // Snapshot is read once on mount and saved as a ref — never overwritten mid-session
+  // On first visit (no snapshot), we save current as baseline; delta will show on next session
+  const snapshotRef = useRef(null)
+  if (snapshotRef.current === null) {
+    try {
+      const stored = sessionStorage.getItem(SESSION_KEY)
+      if (stored) {
+        snapshotRef.current = JSON.parse(stored)
+      } else {
+        // First ever visit — save current as baseline, no deltas yet
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify(currentRanks))
+        snapshotRef.current = {}
+      }
+    } catch (e) {
+      snapshotRef.current = {}
+    }
+  }
+
+  // Update the snapshot whenever XP changes (debounced to end of render via useEffect)
+  useEffect(() => {
+    try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(currentRanks)) } catch (e) {}
+  }) // runs after every render, so snapshot stays fresh for the NEXT page load
+
+  function getRankDelta(studentId) {
+    const prev = snapshotRef.current?.[studentId]
+    const curr = currentRanks[studentId]
+    if (prev == null || curr == null) return null
+    return prev - curr  // positive = moved up
+  }
 
   // Apply group filter AFTER rank calculation so rank numbers stay consistent
   const filtered = groupFilter === 'all' ? sorted
     : sorted.filter(s => STUDENT_GROUPS[s.studentId] === groupFilter)
-
-  function getRankDelta(studentId) {
-    if (!prevRanks || !(studentId in prevRanks)) return null
-    return prevRanks[studentId] - currentRanks[studentId]
-  }
 
   const top3   = filtered.slice(0, 3)
   const rest   = filtered.slice(3)
@@ -1015,7 +1149,8 @@ function LeaderboardTab({ students }) {
     const group = STUDENT_GROUPS[s.studentId]
     const groupColor = group === 'A' ? '#1D4ED8' : group === 'B' ? '#6D28D9' : group === 'C' ? '#065F46' : 'var(--slate)'
     const groupBg    = group === 'A' ? '#DBEAFE' : group === 'B' ? '#F3E8FF' : group === 'C' ? '#D1FAE5' : 'var(--light)'
-    const isTop5 = rowRank <= 5
+    const isTop5  = rowRank <= 5
+    const isTop10 = rowRank <= 10
     const delta = getRankDelta(s.studentId)
 
     return (
@@ -1024,23 +1159,32 @@ function LeaderboardTab({ students }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: (rowRank - 4) * 0.03 }}
         onClick={() => openBreakdown(s)}
-        onMouseEnter={e => e.currentTarget.style.boxShadow = 'var(--shadow-md)'}
+        onMouseEnter={e => e.currentTarget.style.boxShadow = isTop10 ? '0 4px 20px rgba(234,179,8,0.15)' : 'var(--shadow-md)'}
         onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
         style={{
-          background: 'var(--white)', borderRadius: 10, cursor: 'pointer',
+          background: isTop5
+            ? 'linear-gradient(135deg, #fffbeb 0%, #fef9c3 100%)'
+            : isTop10
+            ? 'linear-gradient(135deg, #fffdf5 0%, #fefce8 100%)'
+            : 'var(--white)',
+          borderRadius: 10, cursor: 'pointer',
           transition: 'box-shadow 0.15s',
-          border: isTop5 ? '1.5px solid #FCD34D55' : '1.5px solid var(--border)',
+          border: isTop5
+            ? '1.5px solid #FCD34D88'
+            : isTop10
+            ? '1.5px solid #FDE68A66'
+            : '1.5px solid var(--border)',
           overflow: 'hidden',
         }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px' }}>
           {/* Rank */}
           <div style={{
             width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-            background: isTop5 ? '#FEF9C3' : 'var(--light)',
+            background: isTop5 ? '#FEF9C3' : isTop10 ? '#FEF3C7' : 'var(--light)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700,
-            color: isTop5 ? '#B45309' : 'var(--slate)',
-            border: isTop5 ? '1px solid #FCD34D' : 'none',
+            color: isTop5 ? '#B45309' : isTop10 ? '#D97706' : 'var(--slate)',
+            border: isTop5 ? '1px solid #FCD34D' : isTop10 ? '1px solid #FDE68A' : 'none',
           }}>{rowRank}</div>
 
           {/* Avatar */}
@@ -1139,54 +1283,198 @@ function LeaderboardTab({ students }) {
       </div>
       {top3.length > 0 && (
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
+          initial={{ opacity: 0, y: -16, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           style={{
-            background: 'linear-gradient(160deg, #0f172a 0%, #1e293b 60%, #1a2035 100%)',
-            borderRadius: 18, padding: '18px 14px 0', marginBottom: 20,
-            boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
+            background: 'linear-gradient(160deg, #060d1f 0%, #0d1b35 40%, #0a1628 70%, #111827 100%)',
+            borderRadius: 22, padding: '18px 20px 22px', marginBottom: 24,
+            boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 4px 0 rgba(255,255,255,0.03), inset 0 1px 0 rgba(255,255,255,0.06)',
             overflow: 'hidden', position: 'relative',
+            border: '1px solid rgba(255,255,255,0.07)',
           }}>
+
+          {/* Spotlight beam */}
           <div style={{
-            position: 'absolute', inset: 0, pointerEvents: 'none',
-            background: 'radial-gradient(ellipse at 50% 0%, rgba(253,211,77,0.07) 0%, transparent 60%)',
-          }} />
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700,
-            color: 'rgba(253,211,77,0.55)', textAlign: 'center', letterSpacing: '0.14em',
-            marginBottom: 18, textTransform: 'uppercase', position: 'relative' }}>🏆 Top of the Class</div>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, position: 'relative' }}>
-            {podiumOrder.map((s, posInPodium) => {
-              // podiumOrder is [2nd, 1st, 3rd] — map position back to rank 1/2/3
-              const rank = top3.length === 3 ? [2, 1, 3][posInPodium] : posInPodium + 1
+            position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)',
+            width: '60%', height: '100%', pointerEvents: 'none',
+            background: 'radial-gradient(ellipse 70% 50% at 50% 0%, rgba(34,197,94,0.1) 0%, rgba(34,197,94,0.03) 50%, transparent 70%)',
+          }}/>
+          {/* Side glows */}
+          <div style={{
+            position: 'absolute', top: '10%', left: '-8%', width: '35%', height: '70%', pointerEvents: 'none',
+            background: 'radial-gradient(ellipse, rgba(148,163,184,0.07) 0%, transparent 70%)',
+          }}/>
+          <div style={{
+            position: 'absolute', top: '10%', right: '-8%', width: '35%', height: '70%', pointerEvents: 'none',
+            background: 'radial-gradient(ellipse, rgba(245,158,11,0.07) 0%, transparent 70%)',
+          }}/>
+
+          {/* Floating confetti */}
+          {[
+            { x:'8%',  delay:0,   dur:4.2, color:'#22c55e', size:5 },
+            { x:'20%', delay:0.9, dur:3.8, color:'#F472B6', size:4 },
+            { x:'33%', delay:1.6, dur:4.8, color:'#60A5FA', size:5 },
+            { x:'50%', delay:0.4, dur:3.5, color:'#FCD34D', size:4 },
+            { x:'66%', delay:1.2, dur:4.4, color:'#34D399', size:5 },
+            { x:'80%', delay:0.7, dur:3.9, color:'#F472B6', size:4 },
+            { x:'92%', delay:1.9, dur:4.1, color:'#22c55e', size:5 },
+          ].map((p, i) => (
+            <motion.div key={i}
+              animate={{ y: ['-5%', '105%'], opacity: [0, 0.8, 0.8, 0], rotate: [0, 200] }}
+              transition={{ duration: p.dur, repeat: Infinity, delay: p.delay, ease: 'linear' }}
+              style={{
+                position: 'absolute', left: p.x, top: 0, width: p.size, height: p.size * 1.5,
+                borderRadius: 2, background: p.color, pointerEvents: 'none',
+              }}/>
+          ))}
+
+          {/* Twinkling stars */}
+          {[
+            { x:'6%',  y:'14%', s:10, d:0   },
+            { x:'93%', y:'10%', s:8,  d:0.7 },
+            { x:'16%', y:'60%', s:6,  d:1.2 },
+            { x:'85%', y:'55%', s:7,  d:0.3 },
+          ].map((st, i) => (
+            <motion.div key={i}
+              animate={{ opacity: [0.2, 0.9, 0.2], scale: [0.7, 1.4, 0.7] }}
+              transition={{ duration: 2.4 + i * 0.3, repeat: Infinity, delay: st.d, ease: 'easeInOut' }}
+              style={{ position: 'absolute', left: st.x, top: st.y, fontSize: st.s,
+                color: '#FCD34D', filter: 'drop-shadow(0 0 5px #FCD34D)',
+                pointerEvents: 'none', userSelect: 'none' }}>✦</motion.div>
+          ))}
+
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.08 }}
+            style={{ textAlign: 'center', marginBottom: 22 }}>
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              background: 'rgba(34,197,94,0.08)',
+              border: '1px solid rgba(34,197,94,0.22)',
+              borderRadius: 99, padding: '5px 18px',
+            }}>
+              <span style={{ fontSize: 13 }}>🏆</span>
+              <span style={{
+                fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 800,
+                color: 'rgba(34,197,94,0.85)', letterSpacing: '0.18em', textTransform: 'uppercase',
+              }}>Top of the Class</span>
+              <span style={{ fontSize: 13 }}>🏆</span>
+            </div>
+          </motion.div>
+
+          {/* Main layout: rank4 | podium | rank5 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative' }}>
+
+            {/* Rank 4 — left flank */}
+            {filtered[3] && (() => {
+              const s = filtered[3]
+              const streak = s.streak || 0
+              const badgeCount = BADGES.filter(b => (s.badges || []).includes(b.id)).length
+              const grp = STUDENT_GROUPS[s.studentId]
+              const grpColor = grp === 'A' ? '#60A5FA' : grp === 'B' ? '#C084FC' : '#34D399'
+              const delta = getRankDelta(s.studentId)
               return (
-                <PodiumCard
-                  key={s.studentId}
-                  student={s}
-                  rank={rank}
-                  onSelect={openBreakdown}
-                  rankDelta={getRankDelta(s.studentId)}
-                />
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.35, type: 'spring', stiffness: 180, damping: 22 }}
+                  onClick={() => openBreakdown(s)}
+                  whileHover={{ scale: 1.03, borderColor: 'rgba(34,197,94,0.35)' }}
+                  style={{
+                    width: 130, flexShrink: 0, cursor: 'pointer',
+                    background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(34,197,94,0.15)',
+                    borderRadius: 16, padding: '14px 10px',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+                    backdropFilter: 'blur(4px)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
+                  }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, color: 'rgba(34,197,94,0.5)', letterSpacing: '0.12em' }}>RANK</div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 900, color: '#22c55e', lineHeight: 1, textShadow: '0 0 10px rgba(34,197,94,0.5)' }}>4</div>
+                  <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'linear-gradient(135deg,#134e4a,#0f766e)', border: '2px solid rgba(34,197,94,0.4)', boxShadow: '0 0 14px rgba(34,197,94,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-head)', fontSize: 20, fontWeight: 900, color: '#fff' }}>{s.name?.[0] || '?'}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#e2e8f0', textAlign: 'center', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>@{s.name?.split(' ')[0]}</div>
+                  {grp && <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, color: grpColor }}>Grp {grp}</div>}
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 15, fontWeight: 900, color: '#22c55e', textShadow: '0 0 10px rgba(34,197,94,0.5)' }}>{getVerifiedXP(s).toLocaleString()}</div>
+                  {/* Rank change */}
+                  {delta !== null && delta !== 0 && (
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 800, color: delta > 0 ? '#4ADE80' : '#F87171', background: delta > 0 ? 'rgba(74,222,128,0.18)' : 'rgba(248,113,113,0.18)', border: `1px solid ${delta > 0 ? 'rgba(74,222,128,0.45)' : 'rgba(248,113,113,0.45)'}`, borderRadius: 5, padding: '1px 5px' }}>
+                      {delta > 0 ? '▲' : '▼'} {Math.abs(delta)}
+                    </div>
+                  )}
+                  {/* Streak + badges */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {streak > 1 && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 800, color: '#FB923C', textShadow: '0 0 8px rgba(251,146,60,0.6)' }}>🔥 {streak}d</span>}
+                    {badgeCount > 0 && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, color: '#FCD34D' }}>🏅 {badgeCount}</span>}
+                  </div>
+                  {/* Progress bar */}
+                  <div style={{ width: '100%', height: 3, background: 'rgba(255,255,255,0.08)', borderRadius: 99 }}>
+                    <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, (getVerifiedXP(s) / 2400) * 100)}%` }} transition={{ delay: 0.6, duration: 0.8, ease: 'easeOut' }} style={{ height: '100%', background: '#22c55e', borderRadius: 99, boxShadow: '0 0 6px rgba(34,197,94,0.6)' }}/>
+                  </div>
+                </motion.div>
               )
-            })}
+            })()}
+
+            {/* Centre podium */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              {top3.length === 3
+                ? <PodiumTop3 students={podiumOrder} onSelect={openBreakdown} getRankDelta={getRankDelta} />
+                : <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    {podiumOrder.map((s, i) => (
+                      <PodiumTop3 key={s.studentId} students={[s, s, s]} onSelect={openBreakdown} getRankDelta={getRankDelta} />
+                    ))}
+                  </div>
+              }
+            </div>
+
+            {/* Rank 5 — right flank */}
+            {filtered[4] && (() => {
+              const s = filtered[4]
+              const streak = s.streak || 0
+              const badgeCount = BADGES.filter(b => (s.badges || []).includes(b.id)).length
+              const grp = STUDENT_GROUPS[s.studentId]
+              const grpColor = grp === 'A' ? '#60A5FA' : grp === 'B' ? '#C084FC' : '#34D399'
+              const delta = getRankDelta(s.studentId)
+              return (
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4, type: 'spring', stiffness: 180, damping: 22 }}
+                  onClick={() => openBreakdown(s)}
+                  whileHover={{ scale: 1.03, borderColor: 'rgba(34,197,94,0.35)' }}
+                  style={{
+                    width: 130, flexShrink: 0, cursor: 'pointer',
+                    background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(34,197,94,0.15)',
+                    borderRadius: 16, padding: '14px 10px',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+                    backdropFilter: 'blur(4px)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
+                  }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, color: 'rgba(34,197,94,0.5)', letterSpacing: '0.12em' }}>RANK</div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 900, color: '#22c55e', lineHeight: 1, textShadow: '0 0 10px rgba(34,197,94,0.5)' }}>5</div>
+                  <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'linear-gradient(135deg,#1e3a5f,#1e40af)', border: '2px solid rgba(34,197,94,0.4)', boxShadow: '0 0 14px rgba(34,197,94,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-head)', fontSize: 20, fontWeight: 900, color: '#fff' }}>{s.name?.[0] || '?'}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#e2e8f0', textAlign: 'center', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>@{s.name?.split(' ')[0]}</div>
+                  {grp && <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, color: grpColor }}>Grp {grp}</div>}
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 15, fontWeight: 900, color: '#22c55e', textShadow: '0 0 10px rgba(34,197,94,0.5)' }}>{getVerifiedXP(s).toLocaleString()}</div>
+                  {delta !== null && delta !== 0 && (
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 800, color: delta > 0 ? '#4ADE80' : '#F87171', background: delta > 0 ? 'rgba(74,222,128,0.18)' : 'rgba(248,113,113,0.18)', border: `1px solid ${delta > 0 ? 'rgba(74,222,128,0.45)' : 'rgba(248,113,113,0.45)'}`, borderRadius: 5, padding: '1px 5px' }}>
+                      {delta > 0 ? '▲' : '▼'} {Math.abs(delta)}
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {streak > 1 && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 800, color: '#FB923C', textShadow: '0 0 8px rgba(251,146,60,0.6)' }}>🔥 {streak}d</span>}
+                    {badgeCount > 0 && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, color: '#FCD34D' }}>🏅 {badgeCount}</span>}
+                  </div>
+                  <div style={{ width: '100%', height: 3, background: 'rgba(255,255,255,0.08)', borderRadius: 99 }}>
+                    <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, (getVerifiedXP(s) / 2400) * 100)}%` }} transition={{ delay: 0.65, duration: 0.8, ease: 'easeOut' }} style={{ height: '100%', background: '#22c55e', borderRadius: 99, boxShadow: '0 0 6px rgba(34,197,94,0.6)' }}/>
+                  </div>
+                </motion.div>
+              )
+            })()}
           </div>
         </motion.div>
-      )}
-
-      {/* Ranks 4–5 */}
-      {top5.length > 0 && (
-        <>
-          <TierDivider label="TOP 5" color="#B45309" bg="#FEF3C7" />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {top5.map((s, i) => <StudentRow key={s.studentId} s={s} rowRank={i + 4} />)}
-          </div>
-        </>
       )}
 
       {/* Ranks 6–10 */}
       {top10.length > 0 && (
         <>
-          <TierDivider label="TOP 10" color="var(--pass)" bg="var(--pass-light)" />
+          <TierDivider label="TOP 10" color="#D97706" bg="#FEF3C7" />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {top10.map((s, i) => <StudentRow key={s.studentId} s={s} rowRank={i + 6} />)}
           </div>
