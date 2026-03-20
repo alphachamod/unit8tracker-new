@@ -6,6 +6,16 @@ import {
 } from '../lib/firebase'
 import { SECTIONS, BADGES, TOTAL_XP, PASS_XP, PASS_MERIT_XP, calcXP, calcMilestoneBonus, calcEarlyBonus, calcVerifiedXP, checkBadges, WEEKS_DATA, STUDENT_GROUPS, STUDENT_ROSTER } from '../data/gameData'
 
+function useWindowWidth() {
+  const [w, setW] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
+  useEffect(() => {
+    const h = () => setW(window.innerWidth)
+    window.addEventListener('resize', h)
+    return () => window.removeEventListener('resize', h)
+  }, [])
+  return w
+}
+
 const CRIT_COLORS = {
   P3: { bg: '#d4edda', border: '#74c38a', text: '#155724' },
   P4: { bg: '#b8dfc6', border: '#4daa6a', text: '#0f4a1e' },
@@ -798,12 +808,18 @@ function RankChange({ delta }) {
 }
 
 // ─── Podium top-3 block (single unified layout matching reference) ──────────
-function PodiumTop3({ students, onSelect, getRankDelta }) {
+function PodiumTop3({ students, onSelect, getRankDelta, isMobile = false }) {
   const [s2, s1, s3] = students
 
-  const RING1 = { size: 120, inner: 100, color: '#22c55e', glow: 'rgba(34,197,94,0.75)' }
-  const RING2 = { size: 88,  inner: 72,  color: '#22c55e', glow: 'rgba(34,197,94,0.55)' }
-  const RING3 = { size: 88,  inner: 72,  color: '#22c55e', glow: 'rgba(34,197,94,0.55)' }
+  const RING1 = isMobile
+    ? { size: 90,  inner: 74,  color: '#22c55e', glow: 'rgba(34,197,94,0.75)' }
+    : { size: 120, inner: 100, color: '#22c55e', glow: 'rgba(34,197,94,0.75)' }
+  const RING2 = isMobile
+    ? { size: 68,  inner: 54,  color: '#22c55e', glow: 'rgba(34,197,94,0.55)' }
+    : { size: 88,  inner: 72,  color: '#22c55e', glow: 'rgba(34,197,94,0.55)' }
+  const RING3 = isMobile
+    ? { size: 68,  inner: 54,  color: '#22c55e', glow: 'rgba(34,197,94,0.55)' }
+    : { size: 88,  inner: 72,  color: '#22c55e', glow: 'rgba(34,197,94,0.55)' }
 
   function Avatar({ s, ring, rank, delay, floatY, initAnim }) {
     const initial = s?.name?.[0] || '?'
@@ -990,8 +1006,8 @@ function PodiumTop3({ students, onSelect, getRankDelta }) {
   }
 
   // Column widths mirror ring sizes so text centres under each avatar
-  const COL1 = RING1.size + 40   // 160px
-  const COL2 = RING2.size + 32   // 120px
+  const COL1 = RING1.size + (isMobile ? 24 : 40)
+  const COL2 = RING2.size + (isMobile ? 20 : 32)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
@@ -1082,6 +1098,7 @@ function TierDivider({ label, color, bg }) {
 function LeaderboardTab({ students }) {
   const [breakdown, setBreakdown] = useState(null)
   const [groupFilter, setGroupFilter] = useState('all')
+  const isMobile = useWindowWidth() < 640
 
   const SESSION_KEY = 'tutor_lb_prev_ranks'
 
@@ -1364,10 +1381,10 @@ function LeaderboardTab({ students }) {
             </div>
           </motion.div>
 
-          {/* Main layout: rank4 | podium | rank5 */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative' }}>
+          {/* Main layout: rank4 | podium | rank5  (stacks on mobile) */}
+          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', gap: isMobile ? 10 : 12, position: 'relative' }}>
 
-            {/* Rank 4 — left flank */}
+            {/* Rank 4 — left flank (or top on mobile) */}
             {filtered[3] && (() => {
               const s = filtered[3]
               const streak = s.streak || 0
@@ -1377,38 +1394,46 @@ function LeaderboardTab({ students }) {
               const delta = getRankDelta(s.studentId)
               return (
                 <motion.div
-                  initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
+                  initial={{ opacity: 0, x: isMobile ? 0 : -20, y: isMobile ? -10 : 0 }} animate={{ opacity: 1, x: 0, y: 0 }}
                   transition={{ delay: 0.35, type: 'spring', stiffness: 180, damping: 22 }}
                   onClick={() => openBreakdown(s)}
-                  whileHover={{ scale: 1.03, borderColor: 'rgba(34,197,94,0.35)' }}
+                  whileHover={{ scale: 1.02, borderColor: 'rgba(34,197,94,0.35)' }}
                   style={{
-                    width: 130, flexShrink: 0, cursor: 'pointer',
+                    width: isMobile ? '100%' : 130, flexShrink: 0, cursor: 'pointer',
                     background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(34,197,94,0.15)',
-                    borderRadius: 16, padding: '14px 10px',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+                    borderRadius: 14, padding: isMobile ? '10px 14px' : '14px 10px',
+                    display: 'flex', flexDirection: isMobile ? 'row' : 'column',
+                    alignItems: 'center', gap: isMobile ? 10 : 5,
                     backdropFilter: 'blur(4px)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
                   }}>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, color: 'rgba(34,197,94,0.5)', letterSpacing: '0.12em' }}>RANK</div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 900, color: '#22c55e', lineHeight: 1, textShadow: '0 0 10px rgba(34,197,94,0.5)' }}>4</div>
-                  <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'linear-gradient(135deg,#134e4a,#0f766e)', border: '2px solid rgba(34,197,94,0.4)', boxShadow: '0 0 14px rgba(34,197,94,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-head)', fontSize: 20, fontWeight: 900, color: '#fff' }}>{s.name?.[0] || '?'}</div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: '#e2e8f0', textAlign: 'center', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>@{s.name?.split(' ')[0]}</div>
-                  {grp && <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, color: grpColor }}>Grp {grp}</div>}
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 15, fontWeight: 900, color: '#22c55e', textShadow: '0 0 10px rgba(34,197,94,0.5)' }}>{getVerifiedXP(s).toLocaleString()}</div>
-                  {/* Rank change */}
-                  {delta !== null && delta !== 0 && (
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 800, color: delta > 0 ? '#4ADE80' : '#F87171', background: delta > 0 ? 'rgba(74,222,128,0.18)' : 'rgba(248,113,113,0.18)', border: `1px solid ${delta > 0 ? 'rgba(74,222,128,0.45)' : 'rgba(248,113,113,0.45)'}`, borderRadius: 5, padding: '1px 5px' }}>
-                      {delta > 0 ? '▲' : '▼'} {Math.abs(delta)}
+                  {/* Rank badge */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: isMobile ? 36 : 'auto' }}>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, color: 'rgba(34,197,94,0.5)', letterSpacing: '0.12em' }}>RANK</div>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: isMobile ? 18 : 22, fontWeight: 900, color: '#22c55e', lineHeight: 1, textShadow: '0 0 10px rgba(34,197,94,0.5)' }}>4</div>
+                  </div>
+                  {/* Avatar */}
+                  <div style={{ width: isMobile ? 42 : 52, height: isMobile ? 42 : 52, borderRadius: '50%', background: 'linear-gradient(135deg,#134e4a,#0f766e)', border: '2px solid rgba(34,197,94,0.4)', boxShadow: '0 0 14px rgba(34,197,94,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-head)', fontSize: isMobile ? 16 : 20, fontWeight: 900, color: '#fff', flexShrink: 0 }}>{s.name?.[0] || '?'}</div>
+                  {/* Info */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: isMobile ? 'flex-start' : 'center', gap: 3, flex: isMobile ? 1 : 'auto', minWidth: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#e2e8f0', maxWidth: isMobile ? '100%' : 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>@{s.name?.split(' ')[0]}</div>
+                    {grp && <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, color: grpColor }}>Grp {grp}</div>}
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 900, color: '#22c55e' }}>{getVerifiedXP(s).toLocaleString()}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      {delta !== null && delta !== 0 && (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 800, color: delta > 0 ? '#4ADE80' : '#F87171', background: delta > 0 ? 'rgba(74,222,128,0.18)' : 'rgba(248,113,113,0.18)', border: `1px solid ${delta > 0 ? 'rgba(74,222,128,0.45)' : 'rgba(248,113,113,0.45)'}`, borderRadius: 5, padding: '1px 5px' }}>
+                          {delta > 0 ? '▲' : '▼'} {Math.abs(delta)}
+                        </div>
+                      )}
+                      {streak > 1 && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 800, color: '#FB923C' }}>🔥 {streak}d</span>}
+                      {badgeCount > 0 && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, color: '#FCD34D' }}>🏅 {badgeCount}</span>}
+                    </div>
+                  </div>
+                  {/* Progress bar — hide on mobile row layout, shown on desktop column */}
+                  {!isMobile && (
+                    <div style={{ width: '100%', height: 3, background: 'rgba(255,255,255,0.08)', borderRadius: 99 }}>
+                      <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, (getVerifiedXP(s) / 2400) * 100)}%` }} transition={{ delay: 0.6, duration: 0.8, ease: 'easeOut' }} style={{ height: '100%', background: '#22c55e', borderRadius: 99, boxShadow: '0 0 6px rgba(34,197,94,0.6)' }}/>
                     </div>
                   )}
-                  {/* Streak + badges */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    {streak > 1 && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 800, color: '#FB923C', textShadow: '0 0 8px rgba(251,146,60,0.6)' }}>🔥 {streak}d</span>}
-                    {badgeCount > 0 && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, color: '#FCD34D' }}>🏅 {badgeCount}</span>}
-                  </div>
-                  {/* Progress bar */}
-                  <div style={{ width: '100%', height: 3, background: 'rgba(255,255,255,0.08)', borderRadius: 99 }}>
-                    <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, (getVerifiedXP(s) / 2400) * 100)}%` }} transition={{ delay: 0.6, duration: 0.8, ease: 'easeOut' }} style={{ height: '100%', background: '#22c55e', borderRadius: 99, boxShadow: '0 0 6px rgba(34,197,94,0.6)' }}/>
-                  </div>
                 </motion.div>
               )
             })()}
@@ -1416,16 +1441,16 @@ function LeaderboardTab({ students }) {
             {/* Centre podium */}
             <div style={{ flex: 1, minWidth: 0 }}>
               {top3.length === 3
-                ? <PodiumTop3 students={podiumOrder} onSelect={openBreakdown} getRankDelta={getRankDelta} />
+                ? <PodiumTop3 students={podiumOrder} onSelect={openBreakdown} getRankDelta={getRankDelta} isMobile={isMobile} />
                 : <div style={{ display: 'flex', justifyContent: 'center' }}>
                     {podiumOrder.map((s, i) => (
-                      <PodiumTop3 key={s.studentId} students={[s, s, s]} onSelect={openBreakdown} getRankDelta={getRankDelta} />
+                      <PodiumTop3 key={s.studentId} students={[s, s, s]} onSelect={openBreakdown} getRankDelta={getRankDelta} isMobile={isMobile} />
                     ))}
                   </div>
               }
             </div>
 
-            {/* Rank 5 — right flank */}
+            {/* Rank 5 — right flank (or bottom on mobile) */}
             {filtered[4] && (() => {
               const s = filtered[4]
               const streak = s.streak || 0
@@ -1435,35 +1460,42 @@ function LeaderboardTab({ students }) {
               const delta = getRankDelta(s.studentId)
               return (
                 <motion.div
-                  initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
+                  initial={{ opacity: 0, x: isMobile ? 0 : 20, y: isMobile ? 10 : 0 }} animate={{ opacity: 1, x: 0, y: 0 }}
                   transition={{ delay: 0.4, type: 'spring', stiffness: 180, damping: 22 }}
                   onClick={() => openBreakdown(s)}
-                  whileHover={{ scale: 1.03, borderColor: 'rgba(34,197,94,0.35)' }}
+                  whileHover={{ scale: 1.02, borderColor: 'rgba(34,197,94,0.35)' }}
                   style={{
-                    width: 130, flexShrink: 0, cursor: 'pointer',
+                    width: isMobile ? '100%' : 130, flexShrink: 0, cursor: 'pointer',
                     background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(34,197,94,0.15)',
-                    borderRadius: 16, padding: '14px 10px',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+                    borderRadius: 14, padding: isMobile ? '10px 14px' : '14px 10px',
+                    display: 'flex', flexDirection: isMobile ? 'row' : 'column',
+                    alignItems: 'center', gap: isMobile ? 10 : 5,
                     backdropFilter: 'blur(4px)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
                   }}>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, color: 'rgba(34,197,94,0.5)', letterSpacing: '0.12em' }}>RANK</div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 900, color: '#22c55e', lineHeight: 1, textShadow: '0 0 10px rgba(34,197,94,0.5)' }}>5</div>
-                  <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'linear-gradient(135deg,#1e3a5f,#1e40af)', border: '2px solid rgba(34,197,94,0.4)', boxShadow: '0 0 14px rgba(34,197,94,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-head)', fontSize: 20, fontWeight: 900, color: '#fff' }}>{s.name?.[0] || '?'}</div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: '#e2e8f0', textAlign: 'center', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>@{s.name?.split(' ')[0]}</div>
-                  {grp && <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, color: grpColor }}>Grp {grp}</div>}
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 15, fontWeight: 900, color: '#22c55e', textShadow: '0 0 10px rgba(34,197,94,0.5)' }}>{getVerifiedXP(s).toLocaleString()}</div>
-                  {delta !== null && delta !== 0 && (
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 800, color: delta > 0 ? '#4ADE80' : '#F87171', background: delta > 0 ? 'rgba(74,222,128,0.18)' : 'rgba(248,113,113,0.18)', border: `1px solid ${delta > 0 ? 'rgba(74,222,128,0.45)' : 'rgba(248,113,113,0.45)'}`, borderRadius: 5, padding: '1px 5px' }}>
-                      {delta > 0 ? '▲' : '▼'} {Math.abs(delta)}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: isMobile ? 36 : 'auto' }}>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, color: 'rgba(34,197,94,0.5)', letterSpacing: '0.12em' }}>RANK</div>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: isMobile ? 18 : 22, fontWeight: 900, color: '#22c55e', lineHeight: 1, textShadow: '0 0 10px rgba(34,197,94,0.5)' }}>5</div>
+                  </div>
+                  <div style={{ width: isMobile ? 42 : 52, height: isMobile ? 42 : 52, borderRadius: '50%', background: 'linear-gradient(135deg,#1e3a5f,#1e40af)', border: '2px solid rgba(34,197,94,0.4)', boxShadow: '0 0 14px rgba(34,197,94,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-head)', fontSize: isMobile ? 16 : 20, fontWeight: 900, color: '#fff', flexShrink: 0 }}>{s.name?.[0] || '?'}</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: isMobile ? 'flex-start' : 'center', gap: 3, flex: isMobile ? 1 : 'auto', minWidth: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#e2e8f0', maxWidth: isMobile ? '100%' : 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>@{s.name?.split(' ')[0]}</div>
+                    {grp && <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, color: grpColor }}>Grp {grp}</div>}
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 900, color: '#22c55e' }}>{getVerifiedXP(s).toLocaleString()}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      {delta !== null && delta !== 0 && (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 800, color: delta > 0 ? '#4ADE80' : '#F87171', background: delta > 0 ? 'rgba(74,222,128,0.18)' : 'rgba(248,113,113,0.18)', border: `1px solid ${delta > 0 ? 'rgba(74,222,128,0.45)' : 'rgba(248,113,113,0.45)'}`, borderRadius: 5, padding: '1px 5px' }}>
+                          {delta > 0 ? '▲' : '▼'} {Math.abs(delta)}
+                        </div>
+                      )}
+                      {streak > 1 && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 800, color: '#FB923C' }}>🔥 {streak}d</span>}
+                      {badgeCount > 0 && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, color: '#FCD34D' }}>🏅 {badgeCount}</span>}
+                    </div>
+                  </div>
+                  {!isMobile && (
+                    <div style={{ width: '100%', height: 3, background: 'rgba(255,255,255,0.08)', borderRadius: 99 }}>
+                      <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, (getVerifiedXP(s) / 2400) * 100)}%` }} transition={{ delay: 0.65, duration: 0.8, ease: 'easeOut' }} style={{ height: '100%', background: '#22c55e', borderRadius: 99, boxShadow: '0 0 6px rgba(34,197,94,0.6)' }}/>
                     </div>
                   )}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    {streak > 1 && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 800, color: '#FB923C', textShadow: '0 0 8px rgba(251,146,60,0.6)' }}>🔥 {streak}d</span>}
-                    {badgeCount > 0 && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, color: '#FCD34D' }}>🏅 {badgeCount}</span>}
-                  </div>
-                  <div style={{ width: '100%', height: 3, background: 'rgba(255,255,255,0.08)', borderRadius: 99 }}>
-                    <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, (getVerifiedXP(s) / 2400) * 100)}%` }} transition={{ delay: 0.65, duration: 0.8, ease: 'easeOut' }} style={{ height: '100%', background: '#22c55e', borderRadius: 99, boxShadow: '0 0 6px rgba(34,197,94,0.6)' }}/>
-                  </div>
                 </motion.div>
               )
             })()}
@@ -1947,9 +1979,31 @@ export default function TutorDashboard({ onLogout }) {
     })
   }
 
+  async function handleResetNames() {
+    setConfirm({
+      icon: '✏️', title: 'Reset all student names?',
+      message: 'Overwrites every student\'s name in the database with the official name from the roster. Does NOT affect XP, sections, or any other data.',
+      requireWord: 'RESET',
+      onConfirm: async () => {
+        const updates = []
+        for (const s of students) {
+          const officialName = STUDENT_ROSTER[s.studentId]
+          if (officialName && officialName !== s.name) {
+            updates.push(upsertStudent(s.studentId, { name: officialName }))
+          }
+        }
+        await Promise.all(updates)
+        setStudents(prev => prev.map(s => ({
+          ...s,
+          name: STUDENT_ROSTER[s.studentId] || s.name,
+        })))
+        setConfirm(null)
+      }
+    })
+  }
+
   async function handleClearAll() {
     setConfirm({
-      icon: '⚠️', title: 'Clear ALL student data?',
       message: 'Resets every student\'s XP, sections, and badges to zero. Cannot be undone.',
       requireWord: 'CLEAR',
       onConfirm: async () => {
@@ -2143,6 +2197,11 @@ export default function TutorDashboard({ onLogout }) {
                 style={{ padding: '9px 18px', background: '#EDE9FE', color: '#7C3AED',
                   border: '1.5px solid #C4B5FD', borderRadius: 8, fontSize: 13, fontWeight: 700 }}>
                 🏅 Recalc Badges
+              </button>
+              <button onClick={handleResetNames}
+                style={{ padding: '9px 18px', background: '#FFF7ED', color: '#C2410C',
+                  border: '1.5px solid #FDBA74', borderRadius: 8, fontSize: 13, fontWeight: 700 }}>
+                ✏️ Reset Names
               </button>
               <button onClick={handleClearAll}
                 style={{ padding: '9px 18px', background: 'var(--red-light)', color: 'var(--red)',

@@ -1,40 +1,65 @@
 import { initializeApp } from 'firebase/app';
 import {
   getDatabase, ref, get, set, update, remove,
-  serverTimestamp, onValue, off
+  onValue, off
 } from 'firebase/database';
+import {
+  getAuth, signInAnonymously, onAuthStateChanged
+} from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCISD6kFCWYjbal2rL32u6pQlrDyLSwX3I",
-  authDomain: "unit8guide.firebaseapp.com",
-  databaseURL: "https://unit8guide-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "unit8guide",
-  storageBucket: "unit8guide.firebasestorage.app",
-  messagingSenderId: "218719342294",
-  appId: "1:218719342294:web:d56053b4af0220e5114377",
-  measurementId: "G-QL8PWSS8LB"
+  apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  databaseURL:       import.meta.env.VITE_FIREBASE_DATABASE_URL,
+  projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId:             import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId:     import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-const app = initializeApp(firebaseConfig);
-const db  = getDatabase(app);
+const app  = initializeApp(firebaseConfig);
+const db   = getDatabase(app);
+const auth = getAuth(app);
 
-const TUTOR_PIN = '18539'; // ← change this
+const TUTOR_PIN = import.meta.env.VITE_TUTOR_PIN;
+
+// ── Auth: sign in anonymously on app load ─────────────────────
+let _authReady = null;
+export function ensureAuth() {
+  if (_authReady) return _authReady;
+  _authReady = new Promise((resolve, reject) => {
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        resolve(user);
+      } else {
+        signInAnonymously(auth).then(resolve).catch(reject);
+      }
+    });
+  });
+  return _authReady;
+}
+
+export async function initAuth() {
+  return ensureAuth();
+}
 
 // ── helpers ───────────────────────────────────────────────────
-function studentsRef()          { return ref(db, 'students'); }
-function studentRef(studentId)  { return ref(db, `students/${studentId}`); }
+function studentsRef()         { return ref(db, 'students'); }
+function studentRef(studentId) { return ref(db, `students/${studentId}`); }
 
 // ── Student ops ───────────────────────────────────────────────
 
 export async function loginStudent(studentId, name) {
+  await ensureAuth();
   const snap = await get(studentRef(studentId));
-  const today = new Date().toISOString().split('T')[0];
+  const today     = new Date().toISOString().split('T')[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
 
   if (snap.exists()) {
     const data = snap.val();
-    const lastDate  = data.lastStreakDate || '';
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
     let streak = data.streak || 1;
+    const lastDate = data.lastStreakDate || '';
     if      (lastDate === yesterday) streak += 1;
     else if (lastDate !== today)     streak  = 1;
 
@@ -59,28 +84,24 @@ export async function loginStudent(studentId, name) {
 }
 
 export async function saveProgress(studentId, { completedSections, xp, badges, completedTimestamps, milestoneBonus }) {
-  // Recalculate streak based on consecutive days with section completions
+  await ensureAuth();
   const timestamps = completedTimestamps || {};
-  const today = new Date().toISOString().split('T')[0];
+  const today     = new Date().toISOString().split('T')[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
 
-  // Get unique days where sections were completed
   const completionDays = [...new Set(
     Object.values(timestamps).map(ms => new Date(ms).toISOString().split('T')[0])
   )].sort();
 
-  // Count consecutive days ending today or yesterday
   let streak = 0;
   if (completionDays.length > 0) {
     const lastDay = completionDays[completionDays.length - 1];
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-    // Only count streak if they completed something today or yesterday (still active)
     if (lastDay === today || lastDay === yesterday) {
       streak = 1;
       for (let i = completionDays.length - 2; i >= 0; i--) {
         const curr = new Date(completionDays[i + 1]);
         const prev = new Date(completionDays[i]);
-        const diffDays = Math.round((curr - prev) / 86400000);
-        if (diffDays === 1) streak++;
+        if (Math.round((curr - prev) / 86400000) === 1) streak++;
         else break;
       }
     }
@@ -98,27 +119,28 @@ export async function saveProgress(studentId, { completedSections, xp, badges, c
 }
 
 export async function getStudent(studentId) {
+  await ensureAuth();
   const snap = await get(studentRef(studentId));
   return snap.exists() ? { studentId, ...snap.val() } : null;
 }
 
-// Live listener — calls callback whenever this student's data changes in Firebase
-// Returns an unsubscribe function
 export function listenToStudent(studentId, callback) {
-  const r = studentRef(studentId);
-  onValue(r, snap => {
-    if (snap.exists()) callback({ studentId, ...snap.val() });
+  ensureAuth().then(() => {
+    const r = studentRef(studentId);
+    onValue(r, snap => {
+      if (snap.exists()) callback({ studentId, ...snap.val() });
+    });
   });
-  return () => off(r);
+  return () => off(studentRef(studentId));
 }
 
-// Store a pending celebration grade ('P' | 'M' | 'D') to show student on next login
 export async function setPendingCelebration(studentId, grade) {
+  await ensureAuth();
   await update(studentRef(studentId), { pendingCelebration: grade });
 }
 
-// Clear after shown
 export async function clearPendingCelebration(studentId) {
+  await ensureAuth();
   await update(studentRef(studentId), { pendingCelebration: null });
 }
 
@@ -129,37 +151,40 @@ export function checkTutorPin(pin) {
 }
 
 export async function getAllStudents() {
+  await ensureAuth();
   const snap = await get(studentsRef());
   if (!snap.exists()) return [];
   return Object.entries(snap.val()).map(([id, data]) => ({ studentId: id, ...data }));
 }
 
-// Live listener for all students — fires whenever any student's data changes
 export function listenToAllStudents(callback) {
-  const r = studentsRef();
-  onValue(r, snap => {
-    if (!snap.exists()) { callback([]); return; }
-    const all = Object.entries(snap.val()).map(([id, data]) => ({ studentId: id, ...data }));
-    callback(all);
+  ensureAuth().then(() => {
+    const r = studentsRef();
+    onValue(r, snap => {
+      if (!snap.exists()) { callback([]); return; }
+      callback(Object.entries(snap.val()).map(([id, data]) => ({ studentId: id, ...data })));
+    });
   });
-  return () => off(r);
+  return () => off(studentsRef());
 }
 
 export async function saveTutorOverrides(studentId, { completedSections, xp, badges, tutorOverrides, tutorNote, earlyBonuses, verifyTimestamps, milestoneBonus }) {
+  await ensureAuth();
   await update(studentRef(studentId), {
     completedSections,
     xp,
     badges,
     tutorOverrides,
     tutorNote,
-    earlyBonuses: earlyBonuses || {},
-    verifyTimestamps: verifyTimestamps || {},
-    milestoneBonus: milestoneBonus || 0,
+    earlyBonuses:     earlyBonuses     || {},
+    verifyTimestamps: verifyTimestamps  || {},
+    milestoneBonus:   milestoneBonus    || 0,
     lastSeen: Date.now(),
   });
 }
 
 export async function upsertStudent(studentId, data) {
+  await ensureAuth();
   const snap = await get(studentRef(studentId));
   if (snap.exists()) {
     await update(studentRef(studentId), { ...data, lastSeen: Date.now() });
@@ -169,10 +194,12 @@ export async function upsertStudent(studentId, data) {
 }
 
 export async function deleteStudent(studentId) {
+  await ensureAuth();
   await remove(studentRef(studentId));
 }
 
 export async function clearAllData() {
+  await ensureAuth();
   const snap = await get(studentsRef());
   if (!snap.exists()) return;
   const updates = {};
