@@ -1,0 +1,3605 @@
+{
+  "students": {
+    "ABD23215770": {
+      "badges": [
+        "first_section",
+        "half_pass",
+        "plan_approved",
+        "reviewed",
+        "early_plan"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g",
+        "s3a",
+        "s3b",
+        "s3c",
+        "s4"
+      ],
+      "completedTimestamps": {
+        "s1": 1772796235503,
+        "s2a": 1772796241343,
+        "s2b": 1772796246630,
+        "s2c": 1773237872176,
+        "s2d": 1773237875207,
+        "s2e": 1773244065393,
+        "s2f": 1773237882471,
+        "s2g": 1773241244167,
+        "s3a": 1773241284530,
+        "s3b": 1773241239060,
+        "s3c": 1773241236108,
+        "s4": 1773922444647
+      },
+      "createdAt": 1772710118474,
+      "earlyBonuses": {
+        "s1": 32,
+        "s2a": 32,
+        "s2b": 32,
+        "s3a": 46,
+        "s3b": 46,
+        "s3c": 46
+      },
+      "lastSeen": 1774009096299,
+      "lastStreakDate": "2026-03-19",
+      "milestoneBonus": 120,
+      "name": "Liban Abdullahi",
+      "streak": 1,
+      "studentId": "ABD23215770",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true,
+        "s2e": true,
+        "s2f": true,
+        "s2g": true,
+        "s3a": true,
+        "s3b": true,
+        "s3c": true
+      },
+      "verifyTimestamps": {
+        "s1": 1773244064199,
+        "s2a": 1773244064485,
+        "s2b": 1773244064732,
+        "s2c": 1773244065114,
+        "s2d": 1773244066186,
+        "s2e": 1773244066448,
+        "s2f": 1773244067504,
+        "s2g": 1773244067747,
+        "s3a": 1773244068690,
+        "s3b": 1773244068941,
+        "s3c": 1773244069948
+      },
+      "xp": 67
+    },
+    "ABD23216367": {
+      "badges": [
+        "first_section"
+      ],
+      "completedSections": [
+        "s1",
+        "s2b",
+        "s2a"
+      ],
+      "completedTimestamps": {
+        "s2a": 1773321885012
+      },
+      "createdAt": 1772702874676,
+      "earlyBonuses": {
+        "s1": 25
+      },
+      "lastSeen": 1774009096301,
+      "lastStreakDate": "2026-03-19",
+      "milestoneBonus": 0,
+      "name": "Hana Abdulahi",
+      "streak": 1,
+      "studentId": "ABD23216367",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2b": true
+      },
+      "verifyTimestamps": {
+        "s2b": 1773309045608
+      },
+      "xp": 67
+    },
+    "ABD23221203": {
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c"
+      ],
+      "completedTimestamps": {
+        "s1": 1773243776014,
+        "s2a": 1773243779678,
+        "s2b": 1773243781974,
+        "s2c": 1773243784741
+      },
+      "createdAt": 1773241095624,
+      "lastSeen": 1774009096301,
+      "lastStreakDate": "2026-03-11",
+      "milestoneBonus": 0,
+      "name": "Hasan Abdul",
+      "streak": 1,
+      "studentId": "ABD23221203",
+      "tutorNote": "",
+      "xp": 67
+    },
+    "ABD24224658": {
+      "completedSections": [
+        "s1"
+      ],
+      "completedTimestamps": {
+        "s1": 1773242485507
+      },
+      "createdAt": 1772796700702,
+      "lastSeen": 1774009096301,
+      "lastStreakDate": "2026-03-11",
+      "milestoneBonus": 0,
+      "name": "Muath Abdomagid",
+      "streak": 1,
+      "studentId": "ABD24224658",
+      "tutorNote": "",
+      "xp": 67
+    },
+    "ABD24224712": {
+      "badges": [
+        "first_section",
+        "half_pass",
+        "plan_approved",
+        "early_plan"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g"
+      ],
+      "completedTimestamps": {
+        "s1": 1772791266929,
+        "s2a": 1772794723978,
+        "s2b": 1773219696491,
+        "s2c": 1773219705426,
+        "s2d": 1773219708516,
+        "s2e": 1773219713327,
+        "s2f": 1773219717704,
+        "s2g": 1773219701601
+      },
+      "createdAt": 1772788656829,
+      "earlyBonuses": {
+        "s1": 33,
+        "s2a": 32
+      },
+      "lastSeen": 1774009096302,
+      "lastStreakDate": "2026-03-12",
+      "milestoneBonus": 120,
+      "name": "Ayman Abdirashid",
+      "streak": 2,
+      "studentId": "ABD24224712",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true,
+        "s2e": true,
+        "s2f": true,
+        "s2g": true
+      },
+      "verifyTimestamps": {
+        "s1": 1772791599939,
+        "s2a": 1772794837882,
+        "s2b": 1773229691933,
+        "s2c": 1773229695192,
+        "s2d": 1773229697362,
+        "s2e": 1773229699768,
+        "s2f": 1773229702364,
+        "s2g": 1773229704158
+      },
+      "xp": 67
+    },
+    "ABD25252079": {
+      "badges": [
+        "first_section"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a"
+      ],
+      "completedTimestamps": {
+        "s1": 1773237609811,
+        "s2a": 1773241153055
+      },
+      "createdAt": 1772710253960,
+      "lastSeen": 1774009096302,
+      "lastStreakDate": "2026-03-11",
+      "milestoneBonus": 0,
+      "name": "Adnan Abdulgaadir",
+      "streak": 1,
+      "studentId": "ABD25252079",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true
+      },
+      "verifyTimestamps": {
+        "s1": 1773241344797,
+        "s2a": 1773241345222
+      },
+      "xp": 67
+    },
+    "ADE24238327": {
+      "badges": [
+        "first_section",
+        "half_pass"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d"
+      ],
+      "completedTimestamps": {
+        "s1": 1772725758323,
+        "s2a": 1772725762939,
+        "s2b": 1772725768785,
+        "s2c": 1773926678707,
+        "s2d": 1774006147111
+      },
+      "createdAt": 1772702875952,
+      "earlyBonuses": {
+        "s1": 38,
+        "s2a": 38,
+        "s2b": 38
+      },
+      "lastSeen": 1774009096303,
+      "lastStreakDate": "2026-03-20",
+      "milestoneBonus": 0,
+      "name": "Stanley Adesona",
+      "streak": 2,
+      "studentId": "ADE24238327",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true
+      },
+      "verifyTimestamps": {
+        "s1": 1772725908489,
+        "s2a": 1772725908912,
+        "s2b": 1773313036150,
+        "s2c": 1773929064931
+      },
+      "xp": 67
+    },
+    "ADE24246302": {
+      "badges": [
+        "first_section",
+        "half_pass",
+        "plan_approved",
+        "early_plan"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g"
+      ],
+      "completedTimestamps": {
+        "s2a": 1772797619566,
+        "s2b": 1772797929024,
+        "s2c": 1773238108292,
+        "s2d": 1773238809132,
+        "s2e": 1773240276406,
+        "s2f": 1773241886896,
+        "s2g": 1773244233367
+      },
+      "createdAt": 1772710126957,
+      "earlyBonuses": {
+        "s1": 25,
+        "s2a": 32,
+        "s2b": 32
+      },
+      "lastSeen": 1774009096303,
+      "lastStreakDate": "2026-03-19",
+      "milestoneBonus": 120,
+      "name": "Aderinsoro Adejoro",
+      "streak": 1,
+      "studentId": "ADE24246302",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true,
+        "s2e": true,
+        "s2f": true,
+        "s2g": true
+      },
+      "verifyTimestamps": {
+        "s2a": 1772798368907,
+        "s2b": 1772798369135,
+        "s2c": 1773239032506,
+        "s2d": 1773239032679,
+        "s2e": 1773244285490,
+        "s2f": 1773244285801,
+        "s2g": 1773244286072
+      },
+      "xp": 67
+    },
+    "ADI24234148": {
+      "badges": [
+        "first_section"
+      ],
+      "completedSections": [
+        "s1"
+      ],
+      "completedTimestamps": {
+        "s1": 1773316239562
+      },
+      "createdAt": 1772789013202,
+      "lastSeen": 1774009096303,
+      "lastStreakDate": "2026-03-12",
+      "milestoneBonus": 0,
+      "name": "Muhammad Adil",
+      "streak": 1,
+      "studentId": "ADI24234148",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true
+      },
+      "verifyTimestamps": {
+        "s1": 1773316553717
+      },
+      "xp": 67
+    },
+    "AHM23211731": {
+      "badges": [
+        "first_section"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g"
+      ],
+      "completedTimestamps": {
+        "s2c": 1773241751029,
+        "s2d": 1773919853440,
+        "s2e": 1773919856534,
+        "s2f": 1773919862453,
+        "s2g": 1773919864696
+      },
+      "createdAt": 1772711578910,
+      "earlyBonuses": {
+        "s1": 25
+      },
+      "lastSeen": 1774009096304,
+      "lastStreakDate": "2026-03-19",
+      "milestoneBonus": 0,
+      "name": "Muhammad Awais Ahmed",
+      "streak": 1,
+      "studentId": "AHM23211731",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true
+      },
+      "verifyTimestamps": {
+        "s2a": 1773241099938,
+        "s2b": 1773241109602
+      },
+      "xp": 67
+    },
+    "AHM24230539": {
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c"
+      ],
+      "completedTimestamps": {
+        "s1": 1773314874467,
+        "s2a": 1773315228108,
+        "s2b": 1773315695783,
+        "s2c": 1773662998402
+      },
+      "createdAt": 1772789422795,
+      "lastSeen": 1774009096304,
+      "lastStreakDate": "2026-03-16",
+      "milestoneBonus": 0,
+      "name": "Syed Ahmed",
+      "streak": 1,
+      "studentId": "AHM24230539",
+      "tutorNote": "",
+      "xp": 67
+    },
+    "AKE24239935": {
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b"
+      ],
+      "createdAt": 1772706838138,
+      "lastSeen": 1774009096304,
+      "lastStreakDate": "2026-03-05",
+      "name": "Raphael Ake",
+      "streak": 1,
+      "studentId": "AKE24239935",
+      "tutorNote": "",
+      "xp": 67
+    },
+    "AKO24238862": {
+      "badges": [
+        "first_section",
+        "half_pass"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g"
+      ],
+      "completedTimestamps": {
+        "s2a": 1772798017541,
+        "s2b": 1772798021265,
+        "s2c": 1773237065335,
+        "s2d": 1773237910172,
+        "s2e": 1773241372485,
+        "s2f": 1773241986228,
+        "s2g": 1773921507274
+      },
+      "createdAt": 1772713669614,
+      "earlyBonuses": {
+        "s1": 32,
+        "s2a": 32,
+        "s2b": 32
+      },
+      "lastSeen": 1774009096305,
+      "lastStreakDate": "2026-03-19",
+      "milestoneBonus": 0,
+      "name": "Chinemerem Daniel Akonye",
+      "streak": 1,
+      "studentId": "AKO24238862",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true,
+        "s2e": true,
+        "s2f": true
+      },
+      "verifyTimestamps": {
+        "s1": 1772798375483,
+        "s2a": 1772798375726,
+        "s2b": 1772798376532,
+        "s2c": 1773238579148,
+        "s2d": 1773238579781,
+        "s2e": 1773243895094,
+        "s2f": 1773243895323
+      },
+      "xp": 67
+    },
+    "ALI24225548": {
+      "badges": [
+        "first_section"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b"
+      ],
+      "completedTimestamps": {
+        "s1": 1772792270070,
+        "s2a": 1773315922414
+      },
+      "createdAt": 1772789595088,
+      "earlyBonuses": {
+        "s1": 33
+      },
+      "lastSeen": 1774009096305,
+      "lastStreakDate": "2026-03-19",
+      "milestoneBonus": 0,
+      "name": "Umarah Asghar Ali",
+      "streak": 1,
+      "studentId": "ALI24225548",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true
+      },
+      "verifyTimestamps": {
+        "s1": 1773911450751,
+        "s2a": 1773911452037,
+        "s2b": 1773911379565
+      },
+      "xp": 67
+    },
+    "ALI25247496": {
+      "badges": [
+        "first_section",
+        "half_pass"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c"
+      ],
+      "completedTimestamps": {
+        "s1": 1772794268406,
+        "s2c": 1773314255703
+      },
+      "createdAt": 1772790806653,
+      "earlyBonuses": {
+        "s1": 32
+      },
+      "lastSeen": 1774009096305,
+      "lastStreakDate": "2026-03-19",
+      "milestoneBonus": 0,
+      "name": "Nahyan Al-Imran",
+      "streak": 1,
+      "studentId": "ALI25247496",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true
+      },
+      "verifyTimestamps": {
+        "s1": 1773344303548,
+        "s2a": 1773344302863,
+        "s2b": 1773344301979,
+        "s2c": 1773344300859
+      },
+      "xp": 67
+    },
+    "ALI25251756": {
+      "createdAt": 1772704949849,
+      "lastSeen": 1774006790234,
+      "lastStreakDate": "2026-03-19",
+      "name": "Haseeb Ali",
+      "streak": 1,
+      "studentId": "ALI25251756",
+      "tutorNote": "",
+      "xp": 0
+    },
+    "ALO24232041": {
+      "badges": [
+        "first_section",
+        "half_pass"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d"
+      ],
+      "completedTimestamps": {
+        "s1": 1772791725415,
+        "s2a": 1772794785227,
+        "s2b": 1773230183996
+      },
+      "createdAt": 1772788568383,
+      "earlyBonuses": {
+        "s1": 33,
+        "s2a": 32
+      },
+      "lastSeen": 1774006790229,
+      "lastStreakDate": "2026-03-12",
+      "milestoneBonus": 0,
+      "name": "Shahriar Maruf Alom",
+      "streak": 2,
+      "studentId": "ALO24232041",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true
+      },
+      "verifyTimestamps": {
+        "s1": 1772791756820,
+        "s2a": 1772794851362,
+        "s2b": 1773315979803,
+        "s2c": 1773316009490,
+        "s2d": 1773316010410
+      },
+      "xp": 420
+    },
+    "BAR25252103": {
+      "createdAt": 1772718741179,
+      "lastSeen": 1774006790234,
+      "lastStreakDate": "2026-03-12",
+      "name": "Ibrahim Barre",
+      "streak": 1,
+      "studentId": "BAR25252103",
+      "tutorNote": "",
+      "xp": 0
+    },
+    "BAS23209704": {
+      "createdAt": 1773314912561,
+      "lastSeen": 1774006790234,
+      "lastStreakDate": "2026-03-12",
+      "name": "Mohammad Arman Bashir Kusar",
+      "streak": 1,
+      "studentId": "BAS23209704",
+      "tutorNote": "",
+      "xp": 0
+    },
+    "BOU22189283": {
+      "badges": [
+        "first_section",
+        "half_pass"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e"
+      ],
+      "createdAt": 1772708998977,
+      "earlyBonuses": {
+        "s1": 38,
+        "s2a": 38,
+        "s2b": 38,
+        "s2c": 38,
+        "s2d": 38,
+        "s2e": 38
+      },
+      "lastSeen": 1774006790224,
+      "lastStreakDate": "2026-03-05",
+      "name": "Salhodine Bouselham",
+      "streak": 1,
+      "studentId": "BOU22189283",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true,
+        "s2e": true
+      },
+      "xp": 633
+    },
+    "DAD25252894": {
+      "badges": [
+        "first_section",
+        "half_pass"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f"
+      ],
+      "completedTimestamps": {
+        "s1": 1772796586377,
+        "s2a": 1772798428356,
+        "s2b": 1772798433446,
+        "s2c": 1773239943230,
+        "s2d": 1773239950981,
+        "s2e": 1773239961792,
+        "s2f": 1773244778382
+      },
+      "createdAt": 1772796562196,
+      "earlyBonuses": {
+        "s1": 32,
+        "s2a": 32,
+        "s2b": 32
+      },
+      "lastSeen": 1774006790225,
+      "lastStreakDate": "2026-03-11",
+      "milestoneBonus": 0,
+      "name": "Benson Dada",
+      "streak": 1,
+      "studentId": "DAD25252894",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true,
+        "s2e": true,
+        "s2f": true
+      },
+      "verifyTimestamps": {
+        "s1": 1772796663962,
+        "s2a": 1773239793124,
+        "s2b": 1773239793739,
+        "s2c": 1773240125758,
+        "s2d": 1773240126286,
+        "s2e": 1773240126694,
+        "s2f": 1773244826061
+      },
+      "xp": 551
+    },
+    "DAN24233537": {
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e"
+      ],
+      "completedTimestamps": {
+        "s1": 1773228680757,
+        "s2a": 1773228684521,
+        "s2b": 1773228690934,
+        "s2c": 1773228692422,
+        "s2d": 1773228696606,
+        "s2e": 1773228700702
+      },
+      "createdAt": 1772711260814,
+      "lastSeen": 1774006790229,
+      "lastStreakDate": "2026-03-11",
+      "milestoneBonus": 0,
+      "name": "Lewi Daniels",
+      "streak": 1,
+      "studentId": "DAN24233537",
+      "tutorNote": "",
+      "xp": 350
+    },
+    "DAR24231366": {
+      "badges": [
+        "first_section"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g",
+        "s3a"
+      ],
+      "completedTimestamps": {
+        "s1": 1772791712665,
+        "s2a": 1773315085655,
+        "s2b": 1773316500584,
+        "s2c": 1773316503750,
+        "s2d": 1773316511220,
+        "s2e": 1773316515815,
+        "s2f": 1773316519564,
+        "s2g": 1773316521835,
+        "s3a": 1773316532061
+      },
+      "createdAt": 1772788986215,
+      "earlyBonuses": {
+        "s1": 33
+      },
+      "lastSeen": 1774006790224,
+      "lastStreakDate": "2026-03-13",
+      "milestoneBonus": 120,
+      "name": "David Damilola Daramola",
+      "streak": 2,
+      "studentId": "DAR24231366",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true
+      },
+      "verifyTimestamps": {
+        "s1": 1772792111733
+      },
+      "xp": 688
+    },
+    "DAS25252452": {
+      "badges": [
+        "first_section",
+        "half_pass",
+        "plan_approved",
+        "early_plan"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g"
+      ],
+      "completedTimestamps": {
+        "s2a": 1772877577627,
+        "s2b": 1772881094847,
+        "s2c": 1773235312465,
+        "s2d": 1773237271138,
+        "s2e": 1773244344524,
+        "s2f": 1773238241342,
+        "s2g": 1773239381749
+      },
+      "createdAt": 1772710024212,
+      "earlyBonuses": {
+        "s1": 25,
+        "s2a": 26,
+        "s2b": 25
+      },
+      "lastSeen": 1774006790222,
+      "lastStreakDate": "2026-03-19",
+      "milestoneBonus": 120,
+      "name": "Anusha Das",
+      "streak": 1,
+      "studentId": "DAS25252452",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true,
+        "s2e": true,
+        "s2f": true,
+        "s2g": true
+      },
+      "verifyTimestamps": {
+        "s2a": 1773236025356,
+        "s2b": 1773236025669,
+        "s2c": 1773236027447,
+        "s2d": 1773238374428,
+        "s2e": 1773244435040,
+        "s2f": 1773238375708,
+        "s2g": 1773244432568
+      },
+      "xp": 831
+    },
+    "DHI23208258": {
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2d",
+        "s2e",
+        "s2f"
+      ],
+      "completedTimestamps": {
+        "s1": 1773920150324,
+        "s2a": 1773920158913,
+        "s2b": 1773920162817,
+        "s2d": 1773920171514,
+        "s2e": 1773920175646,
+        "s2f": 1773920189000
+      },
+      "createdAt": 1773314599377,
+      "lastSeen": 1774006790230,
+      "lastStreakDate": "2026-03-19",
+      "milestoneBonus": 0,
+      "name": "Kareena Dhillon",
+      "streak": 1,
+      "studentId": "DHI23208258",
+      "tutorNote": "",
+      "xp": 350
+    },
+    "FAR23213857": {
+      "createdAt": 1772702791899,
+      "lastSeen": 1774006790234,
+      "lastStreakDate": "2026-03-05",
+      "name": "Hamza Farhan",
+      "streak": 1,
+      "studentId": "FAR23213857",
+      "tutorNote": "",
+      "xp": 0
+    },
+    "FAT25251679": {
+      "badges": [
+        "first_section"
+      ],
+      "completedSections": [
+        "s1"
+      ],
+      "createdAt": 1772788674598,
+      "earlyBonuses": {
+        "s1": 27
+      },
+      "lastSeen": 1774006790232,
+      "lastStreakDate": "2026-03-11",
+      "milestoneBonus": 0,
+      "name": "Amirah Fatima",
+      "streak": 1,
+      "studentId": "FAT25251679",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true
+      },
+      "verifyTimestamps": {
+        "s1": 1772859965844
+      },
+      "xp": 152
+    },
+    "FAU24240630": {
+      "createdAt": 1772788625499,
+      "lastSeen": 1774006790234,
+      "lastStreakDate": "2026-03-06",
+      "name": "Anish Faugoo",
+      "streak": 1,
+      "studentId": "FAU24240630",
+      "tutorNote": "",
+      "xp": 0
+    },
+    "GOR24233229": {
+      "badges": [
+        "first_section"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b"
+      ],
+      "completedTimestamps": {
+        "s1": 1773308911612,
+        "s2a": 1773315586308,
+        "s2b": 1773315603560
+      },
+      "createdAt": 1772702823432,
+      "lastSeen": 1774006790231,
+      "lastStreakDate": "2026-03-12",
+      "milestoneBonus": 0,
+      "name": "Jamari Gordon-Stanley",
+      "streak": 1,
+      "studentId": "GOR24233229",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true
+      },
+      "verifyTimestamps": {
+        "s1": 1773309499877
+      },
+      "xp": 225
+    },
+    "GUL24230801": {
+      "completedSections": [
+        "s1"
+      ],
+      "completedTimestamps": {
+        "s1": 1772719470785
+      },
+      "createdAt": 1772704026518,
+      "lastSeen": 1774006790233,
+      "lastStreakDate": "2026-03-05",
+      "name": "Isa Gul",
+      "streak": 1,
+      "studentId": "GUL24230801",
+      "tutorNote": "",
+      "xp": 100
+    },
+    "HUS22191617": {
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g",
+        "s5a"
+      ],
+      "completedTimestamps": {
+        "s1": 1773314601409,
+        "s2a": 1774002637195,
+        "s2b": 1774002640083,
+        "s2c": 1774002643019,
+        "s2d": 1774002645899,
+        "s2e": 1774002648619,
+        "s2f": 1774002651723,
+        "s2g": 1774002654851,
+        "s5a": 1774002775068
+      },
+      "createdAt": 1773221752413,
+      "lastSeen": 1774006790228,
+      "lastStreakDate": "2026-03-20",
+      "milestoneBonus": 0,
+      "name": "Asim Hussain",
+      "streak": 1,
+      "studentId": "HUS22191617",
+      "tutorNote": "",
+      "xp": 500
+    },
+    "HUS22195364": {
+      "badges": [
+        "first_section",
+        "half_pass",
+        "plan_approved",
+        "early_plan"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g",
+        "s3a",
+        "s3b",
+        "s3c",
+        "s4"
+      ],
+      "completedTimestamps": {
+        "s2e": 1772719124084,
+        "s2f": 1772720313314,
+        "s2g": 1772722281341,
+        "s3a": 1773330637524,
+        "s3b": 1773330839720,
+        "s3c": 1773926979019,
+        "s4": 1773931583069
+      },
+      "createdAt": 1772705297669,
+      "earlyBonuses": {
+        "s1": 25,
+        "s2a": 25,
+        "s2b": 39,
+        "s2c": 39,
+        "s2d": 39,
+        "s2e": 39,
+        "s2f": 39,
+        "s2g": 38
+      },
+      "lastSeen": 1774006790215,
+      "lastStreakDate": "2026-03-19",
+      "milestoneBonus": 120,
+      "name": "Abdul Hussain",
+      "streak": 1,
+      "studentId": "HUS22195364",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true,
+        "s2e": true,
+        "s2f": true,
+        "s2g": true
+      },
+      "verifyTimestamps": {
+        "s2b": 1772717386814,
+        "s2c": 1772717388092,
+        "s2d": 1772717390065,
+        "s2e": 1772723211130,
+        "s2f": 1772723211897,
+        "s2g": 1772723212378
+      },
+      "xp": 1338
+    },
+    "HUS24232369": {
+      "createdAt": 1772711620301,
+      "lastSeen": 1774006790234,
+      "lastStreakDate": "2026-03-11",
+      "name": "Rohan Hussain",
+      "streak": 1,
+      "studentId": "HUS24232369",
+      "tutorNote": "",
+      "xp": 0
+    },
+    "IBR24233972": {
+      "badges": [
+        "first_section",
+        "half_pass",
+        "plan_approved",
+        "reviewed",
+        "early_plan",
+        "published"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g",
+        "s3a",
+        "s3b",
+        "s3c",
+        "s4",
+        "s5a",
+        "s5b",
+        "s5c",
+        "s6"
+      ],
+      "completedTimestamps": {
+        "s2a": 1772717718402,
+        "s2b": 1772725720269,
+        "s2c": 1772725726952,
+        "s2d": 1772725730041,
+        "s2e": 1772725733251,
+        "s2f": 1772728610089,
+        "s2g": 1772728613353,
+        "s3a": 1773326633582,
+        "s3b": 1773326637649,
+        "s3c": 1773326643857,
+        "s4": 1773326649462,
+        "s5a": 1773328191577,
+        "s5b": 1773932507617,
+        "s5c": 1773932511547,
+        "s6": 1773932542660
+      },
+      "createdAt": 1772702861582,
+      "earlyBonuses": {
+        "s2a": 39,
+        "s2b": 38,
+        "s2c": 38,
+        "s2d": 38,
+        "s2e": 38,
+        "s2f": 38,
+        "s2g": 38,
+        "s3a": 38,
+        "s3b": 38,
+        "s3c": 38,
+        "s4": 38,
+        "s5a": 38
+      },
+      "lastSeen": 1774006790211,
+      "lastStreakDate": "2026-03-19",
+      "milestoneBonus": 0,
+      "name": "Mohammed Ibrahim",
+      "streak": 1,
+      "studentId": "IBR24233972",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true,
+        "s2e": true,
+        "s2f": true,
+        "s2g": true,
+        "s3a": true,
+        "s3b": true,
+        "s3c": true,
+        "s4": true,
+        "s5a": true,
+        "s5b": true,
+        "s5c": true,
+        "s6": true
+      },
+      "verifyTimestamps": {
+        "s1": 1773307387721,
+        "s2a": 1773307388521,
+        "s2b": 1773307389288,
+        "s2c": 1773307394705,
+        "s2d": 1773307395753,
+        "s2e": 1773307396816,
+        "s2f": 1773307397184,
+        "s2g": 1773307397584,
+        "s3a": 1773328831409,
+        "s3b": 1773328831185,
+        "s3c": 1773328830928,
+        "s4": 1773328830677,
+        "s5a": 1773328830389,
+        "s5b": 1773933228169,
+        "s5c": 1773933229473,
+        "s6": 1773933276777
+      },
+      "xp": 1827
+    },
+    "ILI24240639": {
+      "badges": [
+        "first_section",
+        "half_pass"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e"
+      ],
+      "completedTimestamps": {
+        "s2c": 1773322161213,
+        "s2d": 1773330930756,
+        "s2e": 1773330933852
+      },
+      "createdAt": 1772702949599,
+      "earlyBonuses": {
+        "s1": 25,
+        "s2a": 38,
+        "s2b": 38
+      },
+      "lastSeen": 1774006790227,
+      "lastStreakDate": "2026-03-19",
+      "milestoneBonus": 0,
+      "name": "Kyryl Ilin",
+      "streak": 1,
+      "studentId": "ILI24240639",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true
+      },
+      "verifyTimestamps": {
+        "s2a": 1772727011619,
+        "s2b": 1772727012277,
+        "s2c": 1773331132637,
+        "s2d": 1773331132876
+      },
+      "xp": 506
+    },
+    "ISL24231915": {
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e"
+      ],
+      "completedTimestamps": {
+        "s1": 1773241755832,
+        "s2a": 1773241760464,
+        "s2b": 1773241765886,
+        "s2c": 1773241769899,
+        "s2d": 1773242560366,
+        "s2e": 1773244589763
+      },
+      "createdAt": 1772798047222,
+      "lastSeen": 1774006790230,
+      "lastStreakDate": "2026-03-11",
+      "milestoneBonus": 0,
+      "name": "Imanul Islam",
+      "streak": 1,
+      "studentId": "ISL24231915",
+      "tutorNote": "",
+      "xp": 350
+    },
+    "ISL24237758": {
+      "createdAt": 1772720112508,
+      "lastSeen": 1774006790234,
+      "lastStreakDate": "2026-03-05",
+      "name": "Zakirul Islam",
+      "streak": 1,
+      "studentId": "ISL24237758",
+      "tutorNote": "",
+      "xp": 0
+    },
+    "JAT24235378": {
+      "badges": [
+        "first_section"
+      ],
+      "completedSections": [
+        "s1"
+      ],
+      "createdAt": 1772705274768,
+      "lastSeen": 1774006790233,
+      "lastStreakDate": "2026-03-05",
+      "name": "Oliver Jatczak",
+      "streak": 1,
+      "studentId": "JAT24235378",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true
+      },
+      "verifyTimestamps": {
+        "s1": 1773309884294
+      },
+      "xp": 125
+    },
+    "JOY24231397": {
+      "badges": [
+        "first_section",
+        "half_pass"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2e",
+        "s2f",
+        "s2g",
+        "s2d",
+        "s3a",
+        "s3b",
+        "s3c",
+        "s4",
+        "s2c",
+        "s5a",
+        "s5b"
+      ],
+      "completedTimestamps": {
+        "s2a": 1773308604688,
+        "s2b": 1773308607551,
+        "s2c": 1773913931887,
+        "s2d": 1773316047474,
+        "s2e": 1773308620648,
+        "s2f": 1773308618413,
+        "s2g": 1773308616158,
+        "s3a": 1773326420168,
+        "s3b": 1773326421913,
+        "s3c": 1773326423524,
+        "s4": 1773329884778,
+        "s5a": 1773921594992,
+        "s5b": 1773926116059
+      },
+      "createdAt": 1772702854805,
+      "earlyBonuses": {
+        "s1": 25
+      },
+      "lastSeen": 1774006790221,
+      "lastStreakDate": "2026-03-20",
+      "milestoneBonus": 120,
+      "name": "Lucas William Joynes-Routledge",
+      "streak": 2,
+      "studentId": "JOY24231397",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2e": true,
+        "s2f": true,
+        "s2g": true
+      },
+      "verifyTimestamps": {
+        "s2a": 1773311688647,
+        "s2b": 1773311689543,
+        "s2e": 1773311697934,
+        "s2f": 1773311698495,
+        "s2g": 1773311698950
+      },
+      "xp": 1030
+    },
+    "KHA23220607": {
+      "badges": [
+        "first_section",
+        "half_pass",
+        "plan_approved",
+        "reviewed",
+        "early_plan"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g",
+        "s3a",
+        "s3b",
+        "s3c",
+        "s4",
+        "s5a"
+      ],
+      "completedTimestamps": {
+        "s2a": 1772791206782,
+        "s2b": 1772791216315,
+        "s2c": 1772795343775,
+        "s2d": 1772797044921,
+        "s2e": 1772892003805,
+        "s2f": 1773066808068,
+        "s2g": 1773066811752,
+        "s3a": 1773237322962,
+        "s3b": 1773239034272,
+        "s3c": 1773243604736,
+        "s4": 1773399699897,
+        "s5a": 1773399701824
+      },
+      "createdAt": 1772710029762,
+      "earlyBonuses": {
+        "s1": 32,
+        "s2a": 33,
+        "s2b": 33,
+        "s2c": 32,
+        "s2d": 32,
+        "s2e": 24,
+        "s2f": 10,
+        "s2g": 10,
+        "s3a": 46,
+        "s3b": 46,
+        "s3c": 45
+      },
+      "lastSeen": 1774006790214,
+      "lastStreakDate": "2026-03-19",
+      "milestoneBonus": 120,
+      "name": "Wahid Khan",
+      "streak": 1,
+      "studentId": "KHA23220607",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true,
+        "s2e": true,
+        "s2f": true,
+        "s2g": true,
+        "s3a": true,
+        "s3b": true,
+        "s3c": true
+      },
+      "verifyTimestamps": {
+        "s1": 1772797747059,
+        "s2a": 1772797747260,
+        "s2b": 1772797747521,
+        "s2c": 1772797747843,
+        "s2d": 1772797748113,
+        "s2e": 1773237904920,
+        "s2f": 1773237905371,
+        "s2g": 1773237906013,
+        "s3a": 1773237908503,
+        "s3b": 1773241315934,
+        "s3c": 1773244026771
+      },
+      "xp": 1508
+    },
+    "KHA24230244": {
+      "completedSections": [
+        "s1"
+      ],
+      "completedTimestamps": {
+        "s1": 1772793176186
+      },
+      "createdAt": 1772790927895,
+      "lastSeen": 1774006790233,
+      "lastStreakDate": "2026-03-11",
+      "milestoneBonus": 0,
+      "name": "Muhammad Roshan Khan",
+      "streak": 1,
+      "studentId": "KHA24230244",
+      "tutorNote": "",
+      "xp": 100
+    },
+    "KHA25251630": {
+      "badges": [
+        "first_section",
+        "half_pass",
+        "plan_approved",
+        "reviewed",
+        "early_plan"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g",
+        "s3a",
+        "s3b",
+        "s3c",
+        "s4",
+        "s5a",
+        "s5b"
+      ],
+      "completedTimestamps": {
+        "s1": 1772795309002,
+        "s2a": 1772795312064,
+        "s2b": 1772795314281,
+        "s2c": 1772795317079,
+        "s2d": 1772795322752,
+        "s2e": 1773235609148,
+        "s2f": 1772795325862,
+        "s2g": 1772795328323,
+        "s3a": 1773238848057,
+        "s3b": 1773238845409,
+        "s3c": 1773238842415,
+        "s4": 1773241167536,
+        "s5a": 1773828974238,
+        "s5b": 1773828977093
+      },
+      "createdAt": 1772709960514,
+      "earlyBonuses": {
+        "s1": 32,
+        "s2a": 32,
+        "s2b": 32,
+        "s2c": 32,
+        "s2d": 32,
+        "s2f": 32,
+        "s2g": 32,
+        "s3a": 46,
+        "s3b": 46,
+        "s3c": 46,
+        "s4": 46
+      },
+      "lastSeen": 1774006790213,
+      "lastStreakDate": "2026-03-18",
+      "milestoneBonus": 120,
+      "name": "Mohammad Khan",
+      "streak": 1,
+      "studentId": "KHA25251630",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true,
+        "s2e": true,
+        "s2f": true,
+        "s2g": true,
+        "s3a": true,
+        "s3b": true,
+        "s3c": true,
+        "s4": true
+      },
+      "verifyTimestamps": {
+        "s1": 1772796588546,
+        "s2a": 1772796588899,
+        "s2b": 1772796589265,
+        "s2c": 1772796589631,
+        "s2d": 1772796590623,
+        "s2e": 1773238804202,
+        "s2f": 1773238804485,
+        "s2g": 1773238804756,
+        "s3a": 1773238866871,
+        "s3b": 1773238867330,
+        "s3c": 1773238869532,
+        "s4": 1773241190843
+      },
+      "xp": 1603
+    },
+    "KIB23223162": {
+      "badges": [
+        "first_section",
+        "half_pass",
+        "plan_approved",
+        "reviewed",
+        "early_plan"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g",
+        "s3a",
+        "s3b",
+        "s3c",
+        "s4",
+        "s5a",
+        "s5b",
+        "s5c"
+      ],
+      "completedTimestamps": {
+        "s1": 1772717164335,
+        "s2a": 1772717168140,
+        "s2b": 1772717178633,
+        "s2c": 1772721536250,
+        "s2d": 1772721546264,
+        "s2e": 1772721549846,
+        "s2f": 1773312634600,
+        "s2g": 1773312641811,
+        "s3a": 1773312645175,
+        "s3b": 1773312649953,
+        "s3c": 1773315214376,
+        "s4": 1773320206932,
+        "s5a": 1773331748267,
+        "s5b": 1773331760372,
+        "s5c": 1774004187032
+      },
+      "createdAt": 1772717145710,
+      "earlyBonuses": {
+        "s1": 39,
+        "s2a": 39,
+        "s2b": 39,
+        "s2c": 38,
+        "s2d": 38,
+        "s2e": 38,
+        "s3a": 40,
+        "s3b": 40,
+        "s3c": 39,
+        "s4": 39,
+        "s5a": 38,
+        "s5b": 38
+      },
+      "lastSeen": 1774006790213,
+      "lastStreakDate": "2026-03-20",
+      "milestoneBonus": 120,
+      "name": "Elana Kibrom",
+      "streak": 1,
+      "studentId": "KIB23223162",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true,
+        "s2e": true,
+        "s2f": true,
+        "s2g": true,
+        "s3a": true,
+        "s3b": true,
+        "s3c": true,
+        "s4": true,
+        "s5a": true,
+        "s5b": true
+      },
+      "verifyTimestamps": {
+        "s1": 1772727725510,
+        "s2a": 1772727726144,
+        "s2b": 1772727726719,
+        "s2c": 1772727727127,
+        "s2d": 1772727727544,
+        "s2e": 1772727727943,
+        "s2f": 1773312660148,
+        "s2g": 1773312661668,
+        "s3a": 1773312662580,
+        "s3b": 1773312663524,
+        "s3c": 1773320938120,
+        "s4": 1773320913040,
+        "s5a": 1773331931718,
+        "s5b": 1773331932084
+      },
+      "xp": 1780
+    },
+    "KUM23212965": {
+      "badges": [
+        "first_section",
+        "half_pass"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e"
+      ],
+      "completedTimestamps": {
+        "s1": 1772724649912,
+        "s2a": 1772726531474,
+        "s2b": 1772727380004,
+        "s2c": 1773327107757,
+        "s2d": 1773327120837,
+        "s2e": 1773327185948
+      },
+      "createdAt": 1772717208546,
+      "earlyBonuses": {
+        "s1": 38,
+        "s2a": 38,
+        "s2b": 38
+      },
+      "lastSeen": 1774006790227,
+      "lastStreakDate": "2026-03-12",
+      "milestoneBonus": 0,
+      "name": "Evgjenio Kumaraku",
+      "streak": 1,
+      "studentId": "KUM23212965",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true,
+        "s2e": true
+      },
+      "verifyTimestamps": {
+        "s1": 1773327312220,
+        "s2a": 1773327312569,
+        "s2b": 1773327312907,
+        "s2c": 1773327313312,
+        "s2d": 1773327313707,
+        "s2e": 1773327314904
+      },
+      "xp": 519
+    },
+    "KUM24233100": {
+      "badges": [
+        "first_section",
+        "half_pass",
+        "plan_approved",
+        "early_plan",
+        "reviewed"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g",
+        "s3a",
+        "s3b",
+        "s3c",
+        "s4",
+        "s5a",
+        "s5b",
+        "s5c"
+      ],
+      "completedTimestamps": {
+        "s2a": 1772796779475,
+        "s2b": 1772796783221,
+        "s2c": 1773240211821,
+        "s2d": 1773240214360,
+        "s2e": 1773240216348,
+        "s2f": 1773240218276,
+        "s2g": 1773240220373,
+        "s3a": 1773492582766,
+        "s3b": 1773494849460,
+        "s3c": 1773494857376,
+        "s4": 1773242427039,
+        "s5a": 1773495621173,
+        "s5b": 1773609920907,
+        "s5c": 1773916778375
+      },
+      "createdAt": 1772704565556,
+      "earlyBonuses": {
+        "s1": 25,
+        "s2a": 32,
+        "s2b": 32,
+        "s3a": 25,
+        "s3b": 25,
+        "s3c": 25,
+        "s4": 45,
+        "s5a": 25,
+        "s5b": 15
+      },
+      "lastSeen": 1774006790214,
+      "lastStreakDate": "2026-03-20",
+      "milestoneBonus": 0,
+      "name": "Kian Kumar",
+      "streak": 2,
+      "studentId": "KUM24233100",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true,
+        "s2e": true,
+        "s2f": true,
+        "s2g": true,
+        "s3a": true,
+        "s3b": true,
+        "s3c": true,
+        "s4": true,
+        "s5a": true,
+        "s5b": true,
+        "s5c": true
+      },
+      "verifyTimestamps": {
+        "s2a": 1772797492750,
+        "s2b": 1772797493019,
+        "s2c": 1773240410935,
+        "s2d": 1773240411424,
+        "s2e": 1773240412000,
+        "s2f": 1773240412472,
+        "s2g": 1773240413272,
+        "s3a": 1773919580949,
+        "s3b": 1773919582381,
+        "s3c": 1773919582966,
+        "s4": 1773243982405,
+        "s5a": 1773919584197,
+        "s5b": 1773919584734,
+        "s5c": 1773919585998
+      },
+      "xp": 1444
+    },
+    "LAM24225160": {
+      "badges": [
+        "first_section",
+        "half_pass",
+        "plan_approved",
+        "early_plan",
+        "reviewed"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g",
+        "s3a",
+        "s3b",
+        "s3c",
+        "s4",
+        "s5a"
+      ],
+      "completedTimestamps": {
+        "s2a": 1772723219143,
+        "s2b": 1772725910910,
+        "s2c": 1772794935080,
+        "s2d": 1772797994037,
+        "s2e": 1772980747382,
+        "s2f": 1773236329078,
+        "s2g": 1772982800150,
+        "s3a": 1773238606346,
+        "s3b": 1773242140605,
+        "s3c": 1773399633640,
+        "s4": 1773399638247,
+        "s5a": 1773399687426
+      },
+      "createdAt": 1772710143490,
+      "earlyBonuses": {
+        "s1": 25,
+        "s2a": 38,
+        "s2b": 38,
+        "s2c": 32,
+        "s2d": 32,
+        "s2e": 17,
+        "s2g": 17,
+        "s3a": 46,
+        "s3b": 45,
+        "s3c": 32,
+        "s4": 32,
+        "s5a": 32
+      },
+      "lastSeen": 1774006790215,
+      "lastStreakDate": "2026-03-20",
+      "milestoneBonus": 0,
+      "name": "Marcus La",
+      "streak": 2,
+      "studentId": "LAM24225160",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true,
+        "s2e": true,
+        "s2f": true,
+        "s2g": true,
+        "s3a": true,
+        "s3b": true,
+        "s3c": true,
+        "s4": true,
+        "s5a": true
+      },
+      "verifyTimestamps": {
+        "s2a": 1772796230079,
+        "s2b": 1772796230700,
+        "s2c": 1773238240914,
+        "s2d": 1773238241270,
+        "s2e": 1773238241599,
+        "s2f": 1773238243139,
+        "s2g": 1773238243355,
+        "s3a": 1773244119319,
+        "s3b": 1773244119800,
+        "s3c": 1773920143337,
+        "s4": 1773920143574,
+        "s5a": 1773920145515
+      },
+      "xp": 1431
+    },
+    "LEW24231423": {
+      "badges": [
+        "first_section",
+        "half_pass"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g"
+      ],
+      "completedTimestamps": {
+        "s2a": 1772719980775,
+        "s2d": 1773333074785,
+        "s2e": 1773333086383,
+        "s2f": 1773333099880,
+        "s2g": 1773926029197
+      },
+      "createdAt": 1772705238315,
+      "earlyBonuses": {
+        "s2a": 39
+      },
+      "lastSeen": 1774006790226,
+      "lastStreakDate": "2026-03-19",
+      "milestoneBonus": 0,
+      "name": "Corey Lewis",
+      "streak": 1,
+      "studentId": "LEW24231423",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true,
+        "s2e": true,
+        "s2f": true
+      },
+      "verifyTimestamps": {
+        "s1": 1773310737474,
+        "s2a": 1772722427173,
+        "s2b": 1773310595938,
+        "s2c": 1773310596697,
+        "s2d": 1773333144560,
+        "s2e": 1773333154419,
+        "s2f": 1773333165545
+      },
+      "xp": 544
+    },
+    "LIU24224739": {
+      "badges": [
+        "first_section"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2d",
+        "s2c",
+        "s2e"
+      ],
+      "completedTimestamps": {
+        "s2a": 1773329631340,
+        "s2b": 1773329634447,
+        "s2c": 1773329642401,
+        "s2d": 1773329640147,
+        "s2e": 1773333855339
+      },
+      "createdAt": 1772702885543,
+      "lastSeen": 1774006790229,
+      "lastStreakDate": "2026-03-12",
+      "milestoneBonus": 0,
+      "name": "Andy Liu",
+      "streak": 1,
+      "studentId": "LIU24224739",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true
+      },
+      "verifyTimestamps": {
+        "s1": 1773310026006
+      },
+      "xp": 375
+    },
+    "MAH23208652": {
+      "completedSections": [
+        "s1",
+        "s2a"
+      ],
+      "completedTimestamps": {
+        "s1": 1773315582306,
+        "s2a": 1773316558288
+      },
+      "createdAt": 1773314402665,
+      "lastSeen": 1774006790232,
+      "lastStreakDate": "2026-03-12",
+      "milestoneBonus": 0,
+      "name": "Raheesh Mahmood",
+      "streak": 1,
+      "studentId": "MAH23208652",
+      "tutorNote": "",
+      "xp": 150
+    },
+    "MAK24231199": {
+      "createdAt": 1772711891434,
+      "lastSeen": 1774006790235,
+      "lastStreakDate": "2026-03-05",
+      "name": "Elias Maknoun Faik",
+      "streak": 1,
+      "studentId": "MAK24231199",
+      "tutorNote": "",
+      "xp": 0
+    },
+    "MAL23204389": {
+      "badges": [
+        "first_section",
+        "half_pass",
+        "plan_approved",
+        "reviewed",
+        "early_plan"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g",
+        "s3a",
+        "s3b",
+        "s3c",
+        "s4",
+        "s5a",
+        "s5b",
+        "s5c"
+      ],
+      "completedTimestamps": {
+        "s2c": 1772719263490,
+        "s2d": 1772719971403,
+        "s2e": 1772721801434,
+        "s2f": 1772723495319,
+        "s2g": 1772724534441,
+        "s3a": 1772729143687,
+        "s3b": 1772729239025,
+        "s3c": 1772729242634,
+        "s4": 1772796153956,
+        "s5a": 1772796160851,
+        "s5b": 1772796164035,
+        "s5c": 1772796166588
+      },
+      "createdAt": 1772703029115,
+      "earlyBonuses": {
+        "s2c": 39,
+        "s2d": 39,
+        "s2e": 38,
+        "s2f": 38,
+        "s2g": 38,
+        "s3a": 50,
+        "s3b": 50,
+        "s3c": 50,
+        "s4": 39,
+        "s5a": 39,
+        "s5b": 39,
+        "s5c": 39
+      },
+      "lastSeen": 1774006790213,
+      "lastStreakDate": "2026-03-07",
+      "milestoneBonus": 120,
+      "name": "Aqeel Abbas Malik",
+      "streak": 2,
+      "studentId": "MAL23204389",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true,
+        "s2e": true,
+        "s2f": true,
+        "s2g": true,
+        "s3a": true,
+        "s3b": true,
+        "s3c": true,
+        "s4": true,
+        "s5a": true,
+        "s5b": true,
+        "s5c": true
+      },
+      "verifyTimestamps": {
+        "s1": 1772851484637,
+        "s2a": 1772717502049,
+        "s2b": 1772717502618,
+        "s2c": 1772725572122,
+        "s2d": 1772725572493,
+        "s2e": 1772725573602,
+        "s2f": 1773307831427,
+        "s2g": 1773307831835,
+        "s3a": 1773307832827,
+        "s3b": 1773307835811,
+        "s3c": 1773307837627,
+        "s4": 1773330998071,
+        "s5a": 1773330998374,
+        "s5b": 1773330998643,
+        "s5c": 1773330999020
+      },
+      "xp": 1813
+    },
+    "MIA22173045": {
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c"
+      ],
+      "completedTimestamps": {
+        "s2b": 1773331113959,
+        "s2c": 1773333509917
+      },
+      "createdAt": 1772702826481,
+      "lastSeen": 1774006790231,
+      "lastStreakDate": "2026-03-19",
+      "milestoneBonus": 0,
+      "name": "Md Nasir Uddin Miah",
+      "streak": 1,
+      "studentId": "MIA22173045",
+      "tutorNote": "",
+      "xp": 250
+    },
+    "MIA24228472": {
+      "badges": [
+        "first_section",
+        "half_pass"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d"
+      ],
+      "completedTimestamps": {
+        "s2a": 1773240903480,
+        "s2b": 1773240915888,
+        "s2c": 1773240922625,
+        "s2d": 1773240924944
+      },
+      "createdAt": 1772710078971,
+      "lastSeen": 1774006790229,
+      "lastStreakDate": "2026-03-11",
+      "milestoneBonus": 0,
+      "name": "Mohammed Rasel Miah",
+      "streak": 1,
+      "studentId": "MIA24228472",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true
+      },
+      "verifyTimestamps": {
+        "s1": 1773241035698,
+        "s2a": 1773241036321,
+        "s2b": 1773241036962,
+        "s2c": 1773241041435,
+        "s2d": 1773241051610
+      },
+      "xp": 355
+    },
+    "MOH23221996": {
+      "badges": [
+        "first_section",
+        "half_pass",
+        "plan_approved",
+        "reviewed"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g",
+        "s3a",
+        "s3b",
+        "s3c",
+        "s4",
+        "s5a",
+        "s5b"
+      ],
+      "completedTimestamps": {
+        "s2a": 1772797217167,
+        "s2b": 1772797596023,
+        "s2c": 1773137562619,
+        "s2d": 1773137589218,
+        "s2e": 1773385602708,
+        "s2f": 1773237156784,
+        "s2g": 1773237165230,
+        "s3a": 1773242707893,
+        "s3b": 1773242671910,
+        "s3c": 1773402202939,
+        "s4": 1773240633925,
+        "s5a": 1773402215778,
+        "s5b": 1773917786733
+      },
+      "createdAt": 1772710028437,
+      "earlyBonuses": {
+        "s2a": 32,
+        "s2b": 32,
+        "s2c": 4,
+        "s2d": 4,
+        "s3a": 45,
+        "s3b": 45,
+        "s3c": 32,
+        "s4": 46,
+        "s5a": 32
+      },
+      "lastSeen": 1774006790220,
+      "lastStreakDate": "2026-03-19",
+      "milestoneBonus": 0,
+      "name": "Najah Mohamed",
+      "streak": 1,
+      "studentId": "MOH23221996",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true,
+        "s2e": true,
+        "s2f": true,
+        "s2g": true,
+        "s3a": true,
+        "s3b": true,
+        "s3c": true,
+        "s4": true,
+        "s5a": true,
+        "s5b": true
+      },
+      "verifyTimestamps": {
+        "s1": 1773237816615,
+        "s2a": 1773237816992,
+        "s2b": 1773237817960,
+        "s2c": 1773237819039,
+        "s2d": 1773237821656,
+        "s2e": 1773919865235,
+        "s2f": 1773237830375,
+        "s2g": 1773237830711,
+        "s3a": 1773243858519,
+        "s3b": 1773242680561,
+        "s3c": 1773919866978,
+        "s4": 1773242652362,
+        "s5a": 1773919868658,
+        "s5b": 1773919870674
+      },
+      "xp": 1267
+    },
+    "MOH24242871": {
+      "badges": [
+        "first_section",
+        "half_pass",
+        "plan_approved",
+        "early_plan"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g"
+      ],
+      "completedTimestamps": {
+        "s1": 1773311142338,
+        "s2a": 1773311174957,
+        "s2b": 1773311182952,
+        "s2c": 1773315495536,
+        "s2d": 1773315498105,
+        "s2e": 1773315500120,
+        "s2f": 1773315506693,
+        "s2g": 1773315511732
+      },
+      "createdAt": 1773310866080,
+      "lastSeen": 1774006790223,
+      "lastStreakDate": "2026-03-12",
+      "milestoneBonus": 120,
+      "name": "Suhaib Mohamed",
+      "streak": 1,
+      "studentId": "MOH24242871",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true,
+        "s2e": true,
+        "s2f": true,
+        "s2g": true
+      },
+      "verifyTimestamps": {
+        "s1": 1773311190555,
+        "s2a": 1773311191147,
+        "s2b": 1773311191522,
+        "s2c": 1773333002650,
+        "s2d": 1773333002901,
+        "s2e": 1773333003142,
+        "s2f": 1773333003340,
+        "s2g": 1773333006708
+      },
+      "xp": 755
+    },
+    "MOH25252852": {
+      "createdAt": 1773322747273,
+      "lastSeen": 1774006790235,
+      "lastStreakDate": "2026-03-12",
+      "name": "Ameen Mohammed",
+      "streak": 1,
+      "studentId": "MOH25252852",
+      "tutorNote": "",
+      "xp": 0
+    },
+    "MOL23218049": {
+      "createdAt": 1772723974382,
+      "lastSeen": 1774006790235,
+      "lastStreakDate": "2026-03-19",
+      "name": "Geovani Moldoveanu",
+      "streak": 1,
+      "studentId": "MOL23218049",
+      "tutorNote": "",
+      "xp": 0
+    },
+    "MUJ23215646": {
+      "badges": [
+        "first_section",
+        "half_pass"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g",
+        "s3a",
+        "s3b"
+      ],
+      "completedTimestamps": {
+        "s2e": 1773311566513,
+        "s2f": 1773312984068,
+        "s2g": 1773329527184,
+        "s3a": 1773928776051,
+        "s3b": 1773933405731
+      },
+      "createdAt": 1772850182238,
+      "earlyBonuses": {
+        "s1": 28,
+        "s2a": 28,
+        "s2b": 28,
+        "s2c": 28,
+        "s2d": 28
+      },
+      "lastSeen": 1774006790222,
+      "lastStreakDate": "2026-03-20",
+      "milestoneBonus": 120,
+      "name": "Sara Mujaxhi",
+      "streak": 2,
+      "studentId": "MUJ23215646",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true,
+        "s2e": true,
+        "s2f": true
+      },
+      "verifyTimestamps": {
+        "s2c": 1772850226425,
+        "s2d": 1772850226685,
+        "s2e": 1773328651351,
+        "s2f": 1773328651593
+      },
+      "xp": 885
+    },
+    "MUS24231709": {
+      "badges": [
+        "first_section",
+        "half_pass"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d"
+      ],
+      "completedTimestamps": {
+        "s1": 1772791419343,
+        "s2a": 1772793204107,
+        "s2b": 1773230489569,
+        "s2c": 1773315386743,
+        "s2d": 1773316293251
+      },
+      "createdAt": 1772788971733,
+      "earlyBonuses": {
+        "s1": 33,
+        "s2a": 33
+      },
+      "lastSeen": 1774006790228,
+      "lastStreakDate": "2026-03-12",
+      "milestoneBonus": 0,
+      "name": "Abdulazim Musa",
+      "streak": 2,
+      "studentId": "MUS24231709",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true
+      },
+      "verifyTimestamps": {
+        "s1": 1772793439350,
+        "s2a": 1773316347848,
+        "s2b": 1773316348175,
+        "s2c": 1773316348480,
+        "s2d": 1773316358224
+      },
+      "xp": 421
+    },
+    "NIC23210271": {
+      "badges": [
+        "first_section",
+        "half_pass",
+        "plan_approved",
+        "reviewed"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g",
+        "s3a",
+        "s3b",
+        "s3c",
+        "s4",
+        "s5a",
+        "s5c",
+        "s5b"
+      ],
+      "completedTimestamps": {
+        "s1": 1773307085917,
+        "s2a": 1773307089504,
+        "s2b": 1773307093871,
+        "s2c": 1773307097313,
+        "s2d": 1773307101116,
+        "s2e": 1773307106274,
+        "s2f": 1773327857052,
+        "s2g": 1773997079195,
+        "s3a": 1773998031823,
+        "s3b": 1773998330013,
+        "s3c": 1773999469169,
+        "s4": 1774001689649,
+        "s5a": 1774002437916,
+        "s5b": 1774005376003,
+        "s5c": 1774005254315
+      },
+      "createdAt": 1772702938234,
+      "lastSeen": 1774006790220,
+      "lastStreakDate": "2026-03-20",
+      "milestoneBonus": 0,
+      "name": "Armani Nicholson",
+      "streak": 1,
+      "studentId": "NIC23210271",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true,
+        "s2e": true,
+        "s2f": true,
+        "s2g": true,
+        "s3a": true,
+        "s3b": true,
+        "s3c": true,
+        "s4": true,
+        "s5a": true
+      },
+      "verifyTimestamps": {
+        "s1": 1773308513696,
+        "s2a": 1773308514064,
+        "s2b": 1773308514792,
+        "s2c": 1773308516001,
+        "s2d": 1773331120730,
+        "s2e": 1773308516984,
+        "s2f": 1773331121067,
+        "s2g": 1774002668325,
+        "s3a": 1774002668579,
+        "s3b": 1774002669901,
+        "s3c": 1774002670268,
+        "s4": 1774002671459,
+        "s5a": 1774002671826
+      },
+      "xp": 1115
+    },
+    "NUR23209054": {
+      "badges": [
+        "first_section"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a"
+      ],
+      "completedTimestamps": {
+        "s1": 1772793761611,
+        "s2a": 1772793799410
+      },
+      "createdAt": 1772789798198,
+      "earlyBonuses": {
+        "s1": 33,
+        "s2a": 33
+      },
+      "lastSeen": 1774006790231,
+      "lastStreakDate": "2026-03-06",
+      "milestoneBonus": 0,
+      "name": "Asad Nur",
+      "streak": 1,
+      "studentId": "NUR23209054",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true
+      },
+      "verifyTimestamps": {
+        "s1": 1772793785228,
+        "s2a": 1772794844290
+      },
+      "xp": 241
+    },
+    "NZU23218660": {
+      "badges": [
+        "first_section"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2d",
+        "s2c",
+        "s2f",
+        "s2g",
+        "s2e"
+      ],
+      "completedTimestamps": {
+        "s1": 1772720838719,
+        "s2a": 1772725592083,
+        "s2b": 1772725597188,
+        "s2c": 1773313306488,
+        "s2d": 1773307109473,
+        "s2e": 1773919479673,
+        "s2f": 1773314438323,
+        "s2g": 1773323980808
+      },
+      "createdAt": 1772702938180,
+      "earlyBonuses": {
+        "s1": 39,
+        "s2b": 38
+      },
+      "lastSeen": 1774006790225,
+      "lastStreakDate": "2026-03-19",
+      "milestoneBonus": 0,
+      "name": "Jeremy Nzunu",
+      "streak": 1,
+      "studentId": "NZU23218660",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2b": true,
+        "s2d": true
+      },
+      "verifyTimestamps": {
+        "s1": 1773308782938,
+        "s2b": 1773308776361,
+        "s2d": 1773308776890
+      },
+      "xp": 552
+    },
+    "OGU24236641": {
+      "badges": [
+        "first_section",
+        "half_pass",
+        "plan_approved"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g",
+        "s4"
+      ],
+      "completedTimestamps": {
+        "s1": 1772796231352,
+        "s2a": 1772796235198,
+        "s2b": 1772796238168,
+        "s2c": 1772796247639,
+        "s2d": 1772796263588,
+        "s2e": 1773917414481,
+        "s2f": 1773917417870,
+        "s2g": 1773917420946,
+        "s4": 1773917429913
+      },
+      "createdAt": 1772796175076,
+      "earlyBonuses": {
+        "s1": 32,
+        "s2a": 32,
+        "s2b": 32,
+        "s2c": 32,
+        "s2d": 32
+      },
+      "lastSeen": 1774006790223,
+      "lastStreakDate": "2026-03-19",
+      "milestoneBonus": 0,
+      "name": "Favour Zerah Ogunbanwo",
+      "streak": 1,
+      "studentId": "OGU24236641",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true,
+        "s2e": true,
+        "s2f": true,
+        "s2g": true
+      },
+      "verifyTimestamps": {
+        "s1": 1773240292520,
+        "s2a": 1773240293063,
+        "s2b": 1773240293664,
+        "s2c": 1773240294191,
+        "s2d": 1773240294679,
+        "s2e": 1773921651880,
+        "s2f": 1773921652164,
+        "s2g": 1773921652380
+      },
+      "xp": 815
+    },
+    "OKO24238917": {
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2f",
+        "s2g",
+        "s3b"
+      ],
+      "completedTimestamps": {
+        "s1": 1773145474293,
+        "s2a": 1773145526356,
+        "s2b": 1773146327369,
+        "s2c": 1773147433093,
+        "s2d": 1773148487118,
+        "s2f": 1773148980285,
+        "s2g": 1773151606691,
+        "s3b": 1773920663086
+      },
+      "createdAt": 1772797051845,
+      "lastSeen": 1774006790228,
+      "lastStreakDate": "2026-03-19",
+      "milestoneBonus": 0,
+      "name": "Emmanuel Okoye",
+      "streak": 1,
+      "studentId": "OKO24238917",
+      "tutorNote": "",
+      "xp": 460
+    },
+    "OKO24241235": {
+      "badges": [
+        "first_section",
+        "half_pass"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2e",
+        "s2g",
+        "s3a",
+        "s3b",
+        "s3c",
+        "s4",
+        "s5a",
+        "s5b",
+        "s5c"
+      ],
+      "completedTimestamps": {
+        "s1": 1772792074441,
+        "s2a": 1772793432902,
+        "s2b": 1773229848360,
+        "s2c": 1773229852311,
+        "s2d": 1773229859339,
+        "s2e": 1773229862954,
+        "s2f": 1773229874843,
+        "s2g": 1773315173670,
+        "s3a": 1773315196825,
+        "s3b": 1773671204975,
+        "s3c": 1773682027539,
+        "s4": 1773682031967,
+        "s5a": 1773682035786,
+        "s5b": 1773931372164,
+        "s5c": 1773934234904
+      },
+      "createdAt": 1772789167884,
+      "earlyBonuses": {
+        "s1": 33,
+        "s2a": 33
+      },
+      "lastSeen": 1774006790221,
+      "lastStreakDate": "2026-03-19",
+      "milestoneBonus": 120,
+      "name": "Chisom Okoro",
+      "streak": 1,
+      "studentId": "OKO24241235",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": false,
+        "s2d": false,
+        "s2e": true,
+        "s2f": false
+      },
+      "verifyTimestamps": {
+        "s1": 1772792095893,
+        "s2a": 1773316272900,
+        "s2b": 1773316274196,
+        "s2e": 1773316282429
+      },
+      "xp": 1041
+    },
+    "OLU24236406": {
+      "badges": [
+        "first_section"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g"
+      ],
+      "completedTimestamps": {
+        "s1": 1772789889605,
+        "s2a": 1773921173192,
+        "s2b": 1773921177488,
+        "s2c": 1773921182034,
+        "s2d": 1773921186887,
+        "s2e": 1773921191242,
+        "s2f": 1773921197536,
+        "s2g": 1773921200979
+      },
+      "createdAt": 1772789125462,
+      "earlyBonuses": {
+        "s1": 33
+      },
+      "lastSeen": 1774006790227,
+      "lastStreakDate": "2026-03-19",
+      "milestoneBonus": 0,
+      "name": "Bowofoluwa Olukoya",
+      "streak": 1,
+      "studentId": "OLU24236406",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true
+      },
+      "verifyTimestamps": {
+        "s1": 1772792098765
+      },
+      "xp": 508
+    },
+    "OSO24236342": {
+      "completedSections": [
+        "s2a",
+        "s2b"
+      ],
+      "completedTimestamps": {
+        "s2a": 1774003020932,
+        "s2b": 1774003099465
+      },
+      "createdAt": 1772788961304,
+      "lastSeen": 1774006790233,
+      "lastStreakDate": "2026-03-20",
+      "milestoneBonus": 0,
+      "name": "Derek Osonwa",
+      "streak": 1,
+      "studentId": "OSO24236342",
+      "tutorNote": "",
+      "xp": 100
+    },
+    "OYE24240934": {
+      "createdAt": 1772711127422,
+      "lastSeen": 1774006790235,
+      "lastStreakDate": "2026-03-11",
+      "name": "Oluwaferanmi Oyede",
+      "streak": 1,
+      "studentId": "OYE24240934",
+      "tutorNote": "",
+      "xp": 0
+    },
+    "PAT24228487": {
+      "badges": [
+        "first_section",
+        "half_pass",
+        "plan_approved",
+        "early_plan",
+        "reviewed"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g",
+        "s3a",
+        "s3b",
+        "s3c",
+        "s4",
+        "s5a"
+      ],
+      "completedTimestamps": {
+        "s1": 1773229944827,
+        "s2a": 1773239258062,
+        "s2b": 1773242867379,
+        "s2c": 1773242870950,
+        "s2d": 1773313764159,
+        "s2e": 1773324049709,
+        "s2f": 1773326136663,
+        "s2g": 1773326139869,
+        "s3a": 1773919744803,
+        "s3b": 1773920408305,
+        "s3c": 1773920411678,
+        "s4": 1773927903073,
+        "s5a": 1773928994136,
+        "s5b": 1774003065779
+      },
+      "createdAt": 1772788581321,
+      "lastSeen": 1774006790221,
+      "lastStreakDate": "2026-03-20",
+      "milestoneBonus": 0,
+      "name": "Devan Patel",
+      "streak": 2,
+      "studentId": "PAT24228487",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true,
+        "s2e": true,
+        "s2f": true,
+        "s2g": true,
+        "s3a": true,
+        "s3b": true,
+        "s3c": true,
+        "s4": true,
+        "s5a": true
+      },
+      "verifyTimestamps": {
+        "s1": 1773230003811,
+        "s2a": 1773243017489,
+        "s2b": 1773243017723,
+        "s2c": 1773243017954,
+        "s2d": 1773314935124,
+        "s2e": 1773324144797,
+        "s2f": 1773326600557,
+        "s2g": 1773326600784,
+        "s3a": 1773919762334,
+        "s3b": 1773920820767,
+        "s3c": 1773920821016,
+        "s4": 1774003425027,
+        "s5a": 1773929140884
+      },
+      "xp": 1045
+    },
+    "RAH22185548": {
+      "completedSections": [
+        "s1"
+      ],
+      "completedTimestamps": {
+        "s1": 1773929813768
+      },
+      "createdAt": 1773926625387,
+      "lastSeen": 1774006790233,
+      "lastStreakDate": "2026-03-19",
+      "milestoneBonus": 0,
+      "name": "Umer Rahmani",
+      "streak": 1,
+      "studentId": "RAH22185548",
+      "tutorNote": "",
+      "xp": 100
+    },
+    "RAH23213741": {
+      "badges": [
+        "first_section",
+        "half_pass",
+        "plan_approved",
+        "reviewed",
+        "early_plan"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g",
+        "s3a",
+        "s3b",
+        "s3c",
+        "s4",
+        "s5a",
+        "s5b"
+      ],
+      "completedTimestamps": {
+        "s3a": 1773312015950,
+        "s3b": 1773312019425,
+        "s3c": 1773314584146,
+        "s4": 1773324966925,
+        "s5a": 1773921942107,
+        "s5b": 1773921948066
+      },
+      "createdAt": 1772702866141,
+      "earlyBonuses": {
+        "s1": 25,
+        "s2a": 38,
+        "s2b": 38,
+        "s2c": 38,
+        "s2d": 38,
+        "s2e": 38,
+        "s2f": 38,
+        "s2g": 38,
+        "s3a": 40,
+        "s3b": 40,
+        "s3c": 39,
+        "s4": 39
+      },
+      "lastSeen": 1774006790214,
+      "lastStreakDate": "2026-03-18",
+      "milestoneBonus": 0,
+      "name": "Mohinur Rahman",
+      "streak": 1,
+      "studentId": "RAH23213741",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true,
+        "s2e": true,
+        "s2f": true,
+        "s2g": true,
+        "s3a": true,
+        "s3b": true,
+        "s3c": true,
+        "s4": true,
+        "s5a": true,
+        "s5b": true
+      },
+      "verifyTimestamps": {
+        "s1": 1772725244351,
+        "s2a": 1772721812182,
+        "s2b": 1772721813086,
+        "s2c": 1772721814030,
+        "s2d": 1772721815405,
+        "s2e": 1772721816550,
+        "s2f": 1772721817029,
+        "s2g": 1772721817710,
+        "s3a": 1773325121750,
+        "s3b": 1773325122429,
+        "s3c": 1773325122829,
+        "s4": 1773325123214,
+        "s5a": 1773926903950,
+        "s5b": 1773926904188
+      },
+      "xp": 1524
+    },
+    "RAZ24236643": {
+      "badges": [
+        "first_section"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b"
+      ],
+      "completedTimestamps": {
+        "s1": 1773230277951,
+        "s2a": 1773316431363,
+        "s2b": 1773317035792
+      },
+      "createdAt": 1772792335480,
+      "lastSeen": 1774006790231,
+      "lastStreakDate": "2026-03-12",
+      "milestoneBonus": 0,
+      "name": "Arib Jan Raza",
+      "streak": 2,
+      "studentId": "RAZ24236643",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true
+      },
+      "verifyTimestamps": {
+        "s1": 1773314904796,
+        "s2a": 1773316509510
+      },
+      "xp": 225
+    },
+    "ROT24230838": {
+      "createdAt": 1772711894845,
+      "lastSeen": 1774006790235,
+      "lastStreakDate": "2026-03-11",
+      "name": "Emmanuel Rothe-Ofoedu",
+      "streak": 1,
+      "studentId": "ROT24230838",
+      "tutorNote": "",
+      "xp": 0
+    },
+    "SAI24224873": {
+      "badges": [
+        "first_section"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g",
+        "s3a",
+        "s3b",
+        "s3c"
+      ],
+      "completedTimestamps": {
+        "s1": 1772790547319,
+        "s2a": 1773925013258,
+        "s2b": 1773925016601,
+        "s2c": 1773925018761,
+        "s2d": 1773925022177,
+        "s2e": 1773925024849,
+        "s2f": 1773925029489,
+        "s2g": 1773927558000,
+        "s3a": 1773927561279,
+        "s3b": 1773927563799,
+        "s3c": 1773927565974
+      },
+      "createdAt": 1772788671340,
+      "earlyBonuses": {
+        "s1": 33
+      },
+      "lastSeen": 1774006790223,
+      "lastStreakDate": "2026-03-19",
+      "milestoneBonus": 0,
+      "name": "Abdulqadir Said",
+      "streak": 1,
+      "studentId": "SAI24224873",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true
+      },
+      "verifyTimestamps": {
+        "s1": 1772790749867
+      },
+      "xp": 708
+    },
+    "SAL23212095": {
+      "badges": [
+        "first_section",
+        "half_pass"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c"
+      ],
+      "completedTimestamps": {
+        "s1": 1773239987950,
+        "s2a": 1773239990676,
+        "s2b": 1773239993381,
+        "s2c": 1773239983908
+      },
+      "createdAt": 1773239957499,
+      "lastSeen": 1774006790230,
+      "lastStreakDate": "2026-03-11",
+      "milestoneBonus": 0,
+      "name": "Mohammed Tameem Salam",
+      "streak": 1,
+      "studentId": "SAL23212095",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true
+      },
+      "verifyTimestamps": {
+        "s1": 1773240018957,
+        "s2a": 1773240019837,
+        "s2b": 1773240020358,
+        "s2c": 1773240025093
+      },
+      "xp": 305
+    },
+    "SAL24225471": {
+      "createdAt": 1773229973725,
+      "lastSeen": 1774006790236,
+      "lastStreakDate": "2026-03-11",
+      "name": "Awaab Salman",
+      "streak": 1,
+      "studentId": "SAL24225471",
+      "tutorNote": "",
+      "xp": 0
+    },
+    "SAR23210762": {
+      "completedTimestamps": {
+        "s1": 1773308723763
+      },
+      "createdAt": 1772704058398,
+      "lastSeen": 1774006790236,
+      "lastStreakDate": "2026-03-12",
+      "milestoneBonus": 0,
+      "name": "Amin Sarhan",
+      "streak": 1,
+      "studentId": "SAR23210762",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": false
+      },
+      "xp": 0
+    },
+    "SEC24230483": {
+      "completedSections": [
+        "s1",
+        "s2a"
+      ],
+      "completedTimestamps": {
+        "s1": 1773921499209,
+        "s2a": 1773921516344
+      },
+      "createdAt": 1773921477761,
+      "lastSeen": 1774006790232,
+      "lastStreakDate": "2026-03-19",
+      "milestoneBonus": 0,
+      "name": "Mouhamed Seck",
+      "streak": 1,
+      "studentId": "SEC24230483",
+      "tutorNote": "",
+      "xp": 150
+    },
+    "SHA24241723": {
+      "badges": [
+        "first_section"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g"
+      ],
+      "completedTimestamps": {
+        "s1": 1772791288245,
+        "s2a": 1772793064742,
+        "s2b": 1772794333857,
+        "s2c": 1773845636746,
+        "s2d": 1773845640930,
+        "s2e": 1773845643584,
+        "s2f": 1773845645646,
+        "s2g": 1773845647529
+      },
+      "createdAt": 1772788681109,
+      "earlyBonuses": {
+        "s1": 33,
+        "s2a": 33,
+        "s2b": 32
+      },
+      "lastSeen": 1774006790225,
+      "lastStreakDate": "2026-03-18",
+      "milestoneBonus": 0,
+      "name": "Adam Shah",
+      "streak": 1,
+      "studentId": "SHA24241723",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true
+      },
+      "verifyTimestamps": {
+        "s1": 1772791585419,
+        "s2a": 1772793450181,
+        "s2b": 1772794874490
+      },
+      "xp": 573
+    },
+    "SIO24236118": {
+      "createdAt": 1772710338784,
+      "lastSeen": 1774006790236,
+      "lastStreakDate": "2026-03-18",
+      "name": "Alexandru Sion",
+      "streak": 1,
+      "studentId": "SIO24236118",
+      "tutorNote": "",
+      "xp": 0
+    },
+    "SUF25252926": {
+      "createdAt": 1772718078101,
+      "lastSeen": 1774006790236,
+      "lastStreakDate": "2026-03-05",
+      "name": "Mohammed Sufiyan",
+      "streak": 1,
+      "studentId": "SUF25252926",
+      "tutorNote": "",
+      "xp": 0
+    },
+    "SYL23216419": {
+      "badges": [
+        "first_section"
+      ],
+      "completedSections": [
+        "s1",
+        "s2b",
+        "s2a",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g"
+      ],
+      "completedTimestamps": {
+        "s1": 1772725758690,
+        "s2a": 1773926565276,
+        "s2b": 1772725800461,
+        "s2c": 1773926684314,
+        "s2d": 1773926687738,
+        "s2e": 1774005962247,
+        "s2f": 1774006315569,
+        "s2g": 1774006671662
+      },
+      "createdAt": 1772703571230,
+      "earlyBonuses": {
+        "s1": 38,
+        "s2b": 38
+      },
+      "lastSeen": 1774006790226,
+      "lastStreakDate": "2026-03-20",
+      "milestoneBonus": 0,
+      "name": "Ben Sylla",
+      "streak": 2,
+      "studentId": "SYL23216419",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2b": true
+      },
+      "verifyTimestamps": {
+        "s1": 1773309241665,
+        "s2b": 1773309251409
+      },
+      "xp": 551
+    },
+    "TEST": {
+      "badges": [
+        "streak_3",
+        "first_section",
+        "merit_hunter",
+        "seo_done",
+        "half_pass",
+        "analyst"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2c",
+        "s2f",
+        "s2g",
+        "s2b"
+      ],
+      "completedTimestamps": {
+        "s10": 1773406931270,
+        "s2b": 1774001666635,
+        "s2d": 1772715971361,
+        "s2e": 1773224874156,
+        "s2f": 1773224876629,
+        "s2g": 1773224879613,
+        "s3a": 1773224881692,
+        "s3b": 1773224885067,
+        "s3c": 1773224887124,
+        "s4": 1773224888820,
+        "s5a": 1773224890717,
+        "s5b": 1773224892685,
+        "s5c": 1773224894556,
+        "s6": 1773224896564,
+        "s7a": 1773224898564,
+        "s7b": 1773224900773,
+        "s9": 1773406927183
+      },
+      "createdAt": 1772637090041,
+      "lastSeen": 1774009052314,
+      "lastStreakDate": "2026-03-20",
+      "milestoneBonus": 0,
+      "name": "Test Student",
+      "streak": 1,
+      "studentId": "TEST",
+      "tutorNote": "",
+      "xp": 595
+    },
+    "UDD25253100": {
+      "badges": [
+        "first_section"
+      ],
+      "completedSections": [
+        "s1"
+      ],
+      "completedTimestamps": {
+        "s1": 1772790495493
+      },
+      "createdAt": 1772705427713,
+      "earlyBonuses": {
+        "s1": 33
+      },
+      "lastSeen": 1774006790230,
+      "lastStreakDate": "2026-03-16",
+      "milestoneBonus": 120,
+      "name": "Sayeam Uddin",
+      "streak": 1,
+      "studentId": "UDD25253100",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true
+      },
+      "verifyTimestamps": {
+        "s1": 1772790555371
+      },
+      "xp": 278
+    },
+    "ULH23222427": {
+      "badges": [
+        "first_section",
+        "half_pass"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e"
+      ],
+      "completedTimestamps": {
+        "s1": 1772791848026,
+        "s2a": 1772792426435,
+        "s2b": 1772793644498,
+        "s2c": 1773316309031,
+        "s2d": 1773316311753,
+        "s2e": 1773316314282
+      },
+      "createdAt": 1772790219225,
+      "earlyBonuses": {
+        "s1": 33,
+        "s2a": 33,
+        "s2b": 33
+      },
+      "lastSeen": 1774006790227,
+      "lastStreakDate": "2026-03-12",
+      "milestoneBonus": 0,
+      "name": "Sahd Ulhaq",
+      "streak": 1,
+      "studentId": "ULH23222427",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true,
+        "s2e": true
+      },
+      "verifyTimestamps": {
+        "s1": 1772791866533,
+        "s2a": 1772793080909,
+        "s2b": 1772793695757,
+        "s2c": 1773316423637,
+        "s2d": 1773316424469,
+        "s2e": 1773316426286
+      },
+      "xp": 504
+    },
+    "WEE24247011": {
+      "badges": [
+        "first_section",
+        "half_pass",
+        "plan_approved",
+        "early_plan",
+        "reviewed"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s2f",
+        "s2g",
+        "s3a",
+        "s3b",
+        "s3c"
+      ],
+      "completedTimestamps": {
+        "s2d": 1772727788004,
+        "s2e": 1772729531885,
+        "s2f": 1772801847328,
+        "s2g": 1772801849146,
+        "s3a": 1773322211555,
+        "s3b": 1773327199041,
+        "s3c": 1773404619712
+      },
+      "createdAt": 1772702983499,
+      "earlyBonuses": {
+        "s1": 25,
+        "s2a": 38,
+        "s2b": 38,
+        "s2c": 38,
+        "s2d": 38,
+        "s2e": 38,
+        "s2f": 32,
+        "s2g": 32,
+        "s3a": 39,
+        "s3b": 38,
+        "s3c": 32
+      },
+      "lastSeen": 1774006790215,
+      "lastStreakDate": "2026-03-13",
+      "milestoneBonus": 0,
+      "name": "Devmith Weerakkody",
+      "streak": 2,
+      "studentId": "WEE24247011",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true,
+        "s2e": true,
+        "s2f": true,
+        "s2g": true,
+        "s3a": true,
+        "s3b": true,
+        "s3c": true
+      },
+      "verifyTimestamps": {
+        "s2d": 1773308080947,
+        "s2e": 1773308081916,
+        "s2f": 1773308082699,
+        "s2g": 1773308083459,
+        "s3a": 1773328638347,
+        "s3b": 1773328638591,
+        "s3c": 1773926828240
+      },
+      "xp": 1283
+    },
+    "ZOL24232976": {
+      "badges": [
+        "first_section",
+        "half_pass"
+      ],
+      "completedSections": [
+        "s1",
+        "s2a",
+        "s2b",
+        "s2c",
+        "s2d",
+        "s2e",
+        "s3a",
+        "s3b",
+        "s3c"
+      ],
+      "completedTimestamps": {
+        "s1": 1772790584102,
+        "s2a": 1772791051066,
+        "s2b": 1772796803722,
+        "s2c": 1773237304806,
+        "s2d": 1773239691624,
+        "s2e": 1773240786112,
+        "s3a": 1773998308779,
+        "s3b": 1773998313234,
+        "s3c": 1773998328610
+      },
+      "createdAt": 1772790503393,
+      "earlyBonuses": {
+        "s1": 33,
+        "s2a": 33,
+        "s2b": 32
+      },
+      "lastSeen": 1774006790224,
+      "lastStreakDate": "2026-03-20",
+      "milestoneBonus": 0,
+      "name": "Joseph Zolana",
+      "streak": 1,
+      "studentId": "ZOL24232976",
+      "tutorNote": "",
+      "tutorOverrides": {
+        "s1": true,
+        "s2a": true,
+        "s2b": true,
+        "s2c": true,
+        "s2d": true,
+        "s2e": true
+      },
+      "verifyTimestamps": {
+        "s1": 1772797437982,
+        "s2a": 1772797438237,
+        "s2b": 1772797438515,
+        "s2c": 1773238421048,
+        "s2d": 1773920274152,
+        "s2e": 1773920275308
+      },
+      "xp": 703
+    }
+  }
+}
