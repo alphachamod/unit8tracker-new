@@ -374,31 +374,6 @@ function XPBreakdownModal({ student, onClose }) {
             </div>
           )}
 
-          {/* Self-reported (not yet verified) */}
-          {selfOnly.length > 0 && (
-            <div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700,
-                color: 'var(--slate)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
-                Self-reported (pending verification)
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {selfOnly.map(id => {
-                  const sec = SECTIONS.find(s => s.id === id)
-                  if (!sec) return null
-                  return (
-                    <div key={id} style={{ display: 'flex', alignItems: 'center', gap: 10,
-                      background: 'var(--light)', border: '1px solid var(--border)', borderRadius: 8,
-                      padding: '8px 12px', opacity: 0.7 }}>
-                      <span style={{ fontSize: 12, color: 'var(--slate)', flex: 1 }}>{sec.title}</span>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--slate)' }}>
-                        not verified
-                      </span>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
 
         </div>
       </motion.div>
@@ -1532,7 +1507,28 @@ function StudentModal({ student, onClose, onSave }) {
   const [note, setNote] = useState(student.tutorNote || '')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [resetting, setResetting] = useState(false)
   const verifyTimestamps = useRef({ ...(student.verifyTimestamps || {}) })
+
+  async function handleResetStudent() {
+    if (!window.confirm(`Reset ALL data for ${student.name}? This clears XP, badges, sections and overrides. Cannot be undone.`)) return
+    setResetting(true)
+    const clean = {
+      completedSections: [],
+      xp: 0,
+      badges: [],
+      tutorOverrides: {},
+      earlyBonuses: {},
+      milestoneBonus: 0,
+      verifyTimestamps: {},
+      tutorNote: '',
+      streak: 0,
+    }
+    await upsertStudent(student.studentId, clean)
+    onSave({ ...student, ...clean })
+    onClose()
+    setResetting(false)
+  }
 
   function toggleOverride(sectionId, state) {
     setOverrides(prev => {
@@ -1553,42 +1549,39 @@ function StudentModal({ student, onClose, onSave }) {
   async function handleSave() {
     setSaving(true)
     const now = Date.now()
-    const finalSections = SECTIONS.filter(sec => {
-      const t = overrides[sec.id]
-      const s = (student.completedSections || []).includes(sec.id)
-      if (t === true) return true
-      if (t === false) return false
-      return s
-    }).map(s => s.id)
 
-    // Calculate early bonuses for newly verified sections
-    // Use student's own completion timestamp — not the verify time
+    // Only verified sections count
+    const finalSections = SECTIONS
+      .filter(sec => overrides[sec.id] === true)
+      .map(s => s.id)
+
+    // Recalculate early bonuses — only for currently verified sections, strip removed ones
     const completedTimestamps = student.completedTimestamps || {}
-    const prevEarlyBonuses = student.earlyBonuses || {}
-    const newEarlyBonuses = { ...prevEarlyBonuses }
-    Object.entries(overrides).forEach(([sectionId, val]) => {
-      if (val === true && !(sectionId in prevEarlyBonuses)) {
-        // Use when the STUDENT ticked the box, not when tutor verified
-        const ts = completedTimestamps[sectionId] || now
-        const bonus = calcEarlyBonus(sectionId, ts, overrides)
-        if (bonus > 0) newEarlyBonuses[sectionId] = bonus
-      } else if (val === false) {
-        delete newEarlyBonuses[sectionId]
-        delete verifyTimestamps.current[sectionId]
-      }
+    const newEarlyBonuses = {}
+    finalSections.forEach(sectionId => {
+      const ts = completedTimestamps[sectionId] || now
+      const bonus = calcEarlyBonus(sectionId, ts, overrides)
+      if (bonus > 0) newEarlyBonuses[sectionId] = bonus
     })
 
+    // Recalculate milestone bonus fresh from verified sections only — never carry forward
+    const newMilestone = calcMilestoneBonus(finalSections, 0)
+
+    // Recalculate badges fresh — only based on verified sections, no carry-forward
     const newBadges = checkBadges(finalSections, 0, student.streak || 1, overrides)
-    const allBadges = [...new Set([...(student.badges || []), ...newBadges])]
-    const newXP = calcXP(finalSections, allBadges, newEarlyBonuses)
+
+    // Recalculate XP fully from scratch
+    const newXP = calcVerifiedXP(finalSections, newBadges, overrides, newEarlyBonuses, newMilestone)
 
     await saveTutorOverrides(student.studentId, {
-      completedSections: finalSections, xp: newXP, badges: allBadges,
-      tutorOverrides: overrides, tutorNote: note, earlyBonuses: newEarlyBonuses,
+      completedSections: finalSections, xp: newXP, badges: newBadges,
+      tutorOverrides: overrides, tutorNote: note,
+      earlyBonuses: newEarlyBonuses,
+      milestoneBonus: newMilestone,
       verifyTimestamps: verifyTimestamps.current,
     })
     setSaving(false); setSaved(true)
-    onSave({ ...student, completedSections: finalSections, xp: newXP, badges: allBadges, tutorOverrides: overrides, tutorNote: note, earlyBonuses: newEarlyBonuses, verifyTimestamps: verifyTimestamps.current })
+    onSave({ ...student, completedSections: finalSections, xp: newXP, badges: newBadges, tutorOverrides: overrides, tutorNote: note, earlyBonuses: newEarlyBonuses, milestoneBonus: newMilestone, verifyTimestamps: verifyTimestamps.current })
   }
 
   const passTotal = SECTIONS.filter(s => s.band === 'pass').length
@@ -1650,9 +1643,6 @@ function StudentModal({ student, onClose, onSave }) {
                           borderRadius: 3, padding: '1px 6px', flexShrink: 0 }}>{sec.criteria}</span>
                       )}
                       <span style={{ flex: 1, fontSize: 13, color: 'var(--navy)' }}>{sec.title}</span>
-                      {studentDone && !override && (
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--slate)', flexShrink: 0 }}>self ✓</span>
-                      )}
                       {override === true && (() => {
                         // Show stored bonus if already saved, otherwise preview what they'd get
                         const storedBonus = (student.earlyBonuses || {})[sec.id]
@@ -1713,6 +1703,11 @@ function StudentModal({ student, onClose, onSave }) {
           <button onClick={onClose}
             style={{ padding: '9px 18px', border: '1.5px solid var(--border)', borderRadius: 8,
               fontSize: 13, fontWeight: 600, color: 'var(--slate)', background: 'var(--white)' }}>Close</button>
+          <button onClick={handleResetStudent} disabled={resetting}
+            style={{ padding: '9px 18px', border: '1.5px solid #FCA5A5', borderRadius: 8,
+              fontSize: 13, fontWeight: 700, color: 'var(--red)', background: 'var(--red-light)' }}>
+            {resetting ? 'Resetting...' : '🗑 Reset All'}
+          </button>
           <button onClick={handleSave} disabled={saving}
             style={{ padding: '9px 22px', background: saving ? '#94a3b8' : 'var(--navy)', color: '#fff',
               borderRadius: 8, fontSize: 13, fontWeight: 700 }}>
@@ -2322,7 +2317,6 @@ export default function TutorDashboard({ onLogout }) {
                           {/* XP */}
                           <td style={{ padding: '12px 14px' }}>
                             <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--gold)' }}>{vXP.toLocaleString()}</div>
-                            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--slate)', marginTop: 1 }}>/ {calcXP(s.completedSections || [], s.badges || [], s.earlyBonuses || {}, s.milestoneBonus || 0).toLocaleString()} self</div>
                           </td>
 
                           {/* Grade */}
