@@ -1,39 +1,51 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { STUDENT_ROSTER } from '../data/gameData'
-import { loginStudent, checkTutorPin } from '../lib/firebase'
+import { getStudent, ensureAuth, signInTutor } from '../lib/firebase'
 
 export default function Login({ onStudentLogin, onTutorLogin }) {
-  const [tab, setTab] = useState('student')
+  const [tab, setTab]             = useState('student')
   const [studentId, setStudentId] = useState('')
-  const [pin, setPin] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [loading, setLoading]     = useState(false)
+  const [error, setError]         = useState('')
 
   const name = STUDENT_ROSTER[studentId.toUpperCase()]
-
 
   async function handleStudentLogin() {
     const id = studentId.toUpperCase().trim()
     if (!STUDENT_ROSTER[id]) { setError('Student ID not recognised. Check and try again.'); return }
     setLoading(true); setError('')
     try {
-      const data = await loginStudent(id, STUDENT_ROSTER[id])
-      onStudentLogin({ ...data, studentId: id, name: STUDENT_ROSTER[id] })
+      await ensureAuth()
+      const data = await getStudent(id)
+      onStudentLogin({
+        studentId: id,
+        name: STUDENT_ROSTER[id],
+        completedSections: [],
+        xp: 0,
+        badges: [],
+        streak: 0,
+        tutorOverrides: {},
+        tutorNote: '',
+        ...(data && typeof data === 'object' ? data : {}),
+        // Always keep the roster name as source of truth
+        name: STUDENT_ROSTER[id],
+        studentId: id,
+      })
     } catch (e) {
-      setError('Could not connect to server. Check your internet connection.')
+      setError('Could not connect. Check your internet connection.')
     }
     setLoading(false)
   }
 
   async function handleTutorLogin() {
-    if (!pin) { setError('Please enter your PIN.'); return }
     setLoading(true); setError('')
-    if (!checkTutorPin(pin)) {
-      setError('Incorrect PIN. Try again.')
-      setLoading(false); return
+    try {
+      await signInTutor()
+      onTutorLogin()
+    } catch (e) {
+      setError(e.message || 'Sign-in failed. Make sure you use the authorised Google account.')
     }
-    onTutorLogin()
     setLoading(false)
   }
 
@@ -101,7 +113,7 @@ export default function Login({ onStudentLogin, onTutorLogin }) {
               <button onClick={handleStudentLogin} disabled={loading}
                 style={{ padding:13, background: loading ? '#94a3b8' : 'var(--navy)', color:'#fff',
                   borderRadius:8, fontSize:14, fontWeight:700, letterSpacing:'0.03em',
-                  transition:'all 0.15s', transform:'translateY(0)', cursor: loading ? 'not-allowed' : 'pointer' }}
+                  transition:'all 0.15s', cursor: loading ? 'not-allowed' : 'pointer' }}
                 onMouseEnter={e => !loading && (e.target.style.background='var(--navy-mid)')}
                 onMouseLeave={e => !loading && (e.target.style.background='var(--navy)')}>
                 {loading ? 'Loading...' : "Let's Go →"}
@@ -113,19 +125,31 @@ export default function Login({ onStudentLogin, onTutorLogin }) {
           ) : (
             <motion.div key="tutor" initial={{ opacity:0, x:10 }} animate={{ opacity:1, x:0 }} exit={{ opacity:0, x:-10 }}
               style={{ display:'flex', flexDirection:'column', gap:16 }}>
-              <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-                <label style={{ fontSize:12, fontWeight:600, color:'var(--navy)' }}>Tutor PIN</label>
-                <input type="password" value={pin} onChange={e => { setPin(e.target.value); setError('') }}
-                  onKeyDown={e => e.key==='Enter' && handleTutorLogin()}
-                  placeholder="Enter PIN"
-                  style={{ width:'100%', padding:'11px 14px', border:'1.5px solid var(--border)', borderRadius:8, fontSize:14 }}
-                  onFocus={e => e.target.style.borderColor='var(--pass)'}
-                  onBlur={e => e.target.style.borderColor='var(--border)'}/>
+
+              {/* Google sign-in info */}
+              <div style={{ padding:'14px 16px', background:'#F0FDF4', border:'1.5px solid #BBF7D0',
+                borderRadius:10, fontSize:13, color:'#166534', lineHeight:1.5 }}>
+                🔒 Tutor access is secured with Google Sign-In.<br/>
+                Only the authorised account can access this dashboard.
               </div>
+
               <button onClick={handleTutorLogin} disabled={loading}
-                style={{ padding:13, background:'var(--pass)', color:'#fff', borderRadius:8,
-                  fontSize:14, fontWeight:700, transition:'all 0.15s' }}>
-                {loading ? 'Checking...' : 'Access Dashboard →'}
+                style={{ padding:13, background: loading ? '#94a3b8' : '#fff', color: loading ? '#fff' : 'var(--navy)',
+                  borderRadius:8, fontSize:14, fontWeight:700, transition:'all 0.15s',
+                  border:'1.5px solid var(--border)',
+                  display:'flex', alignItems:'center', justifyContent:'center', gap:10,
+                  cursor: loading ? 'not-allowed' : 'pointer' }}
+                onMouseEnter={e => !loading && (e.currentTarget.style.borderColor='var(--navy)')}
+                onMouseLeave={e => !loading && (e.currentTarget.style.borderColor='var(--border)')}>
+                {!loading && (
+                  <svg width="18" height="18" viewBox="0 0 48 48">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                  </svg>
+                )}
+                {loading ? 'Signing in...' : 'Sign in with Google'}
               </button>
             </motion.div>
           )}

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   getAllStudents, saveTutorOverrides, upsertStudent,
-  deleteStudent as fbDeleteStudent, clearAllData, setPendingCelebration
+  deleteStudent as fbDeleteStudent, clearAllData, setPendingCelebration, signOutTutor
 } from '../lib/firebase'
 import { SECTIONS, BADGES, TOTAL_XP, PASS_XP, PASS_MERIT_XP, calcXP, calcMilestoneBonus, calcEarlyBonus, calcVerifiedXP, checkBadges, WEEKS_DATA, STUDENT_GROUPS, STUDENT_ROSTER } from '../data/gameData'
 
@@ -2073,7 +2073,7 @@ export default function TutorDashboard({ onLogout }) {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'rgba(255,255,255,0.5)', marginRight: 8 }}>Mr Ravindu</span>
-          <button onClick={onLogout}
+          <button onClick={async () => { await signOutTutor(); onLogout(); }}
             style={{ padding: '6px 14px', background: 'rgba(255,255,255,0.1)', color: '#fff',
               borderRadius: 6, fontSize: 12, fontWeight: 600, border: '1px solid rgba(255,255,255,0.15)' }}>
             Log out

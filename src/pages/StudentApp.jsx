@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { saveProgress, getStudent, listenToStudent, clearPendingCelebration } from '../lib/firebase'
-import { SECTIONS, BADGES, TOTAL_XP, PASS_XP, PASS_MERIT_XP, calcXP, calcMilestoneBonus, checkBadges, SECTION_POPUPS, DEADLINE, START_DATE } from '../data/gameData'
+import { getStudent, listenToStudent } from '../lib/firebase'
+import { SECTIONS, BADGES, TOTAL_XP, PASS_XP, PASS_MERIT_XP, calcXP } from '../data/gameData'
 import HomePage from './student/HomePage'
 import TimelinePage from './student/TimelinePage'
 import SectionsPage from './student/SectionsPage'
@@ -10,153 +10,32 @@ import LeaderboardPage from './student/LeaderboardPage'
 import IntegrityPage from './student/IntegrityPage'
 import ResourcesPage from './student/ResourcesPage'
 import FAQPage from './student/FAQPage'
-import SectionPopup from '../components/SectionPopup'
-import GradeCelebration from '../components/GradeCelebration'
-import Toast from '../components/Toast'
 
 const NAV_ITEMS = [
-  { id:'home', label:'Home', emoji:'🏠' },
-  { id:'timeline', label:'Timeline', emoji:'📅' },
-  { id:'sections', label:'Sections', emoji:'📋' },
-  { id:'badges', label:'Badges', emoji:'🏅' },
-  { id:'leaderboard', label:'Board', emoji:'🏆' },
-  { id:'integrity', label:'Integrity', emoji:'⚠️' },
-  { id:'resources', label:'Resources', emoji:'🔗' },
-  { id:'faq', label:'FAQ', emoji:'💬' },
+  { id:'home',        label:'Home',      emoji:'🏠' },
+  { id:'timeline',    label:'Timeline',  emoji:'📅' },
+  { id:'sections',    label:'Sections',  emoji:'📋' },
+  { id:'badges',      label:'Badges',    emoji:'🏅' },
+  { id:'leaderboard', label:'Board',     emoji:'🏆' },
+  { id:'integrity',   label:'Integrity', emoji:'⚠️' },
+  { id:'resources',   label:'Resources', emoji:'🔗' },
+  { id:'faq',         label:'FAQ',       emoji:'💬' },
 ]
 
 export default function StudentApp({ student, setStudent, onLogout }) {
-  const [page, setPage] = useState('home')
-  const [popup, setPopup] = useState(null)
-  const [toast, setToast] = useState(null)
+  const [page, setPage]         = useState('home')
   const [menuOpen, setMenuOpen] = useState(false)
-  const [gradeCelebration, setGradeCelebration] = useState(null) // 'P' | 'M' | 'D'
-  const syncTimer = useRef(null)
-  const isSettled = useRef(false)
 
-  // Helper — returns which grade bands are fully verified for a given tutorOverrides map
-  const getVerifiedGrade = (overrides) => {
-    const passIds        = SECTIONS.filter(s => s.band === 'pass').map(s => s.id)
-    const meritIds       = SECTIONS.filter(s => s.band === 'merit').map(s => s.id)
-    const distIds        = SECTIONS.filter(s => s.band === 'distinction').map(s => s.id)
-    const isV = id => overrides?.[id] === true
-    if ([...passIds, ...meritIds, ...distIds].every(isV)) return 'D'
-    if ([...passIds, ...meritIds].every(isV))             return 'M'
-    if (passIds.every(isV))                               return 'P'
-    return null
-  }
-  const prevGrade = useRef(getVerifiedGrade(student.tutorOverrides))
+  if (!student) return null
 
   // Live listener — updates student state whenever tutor makes changes in Firebase
   useEffect(() => {
     const unsub = listenToStudent(student.studentId, fresh => {
       const recalcedXP = calcXP(fresh.completedSections || [], fresh.badges || [])
       setStudent(s => ({ ...s, ...fresh, xp: recalcedXP }))
-      if (!isSettled.current) {
-        // First callback is the initial load — set baseline grade and mark settled
-        prevGrade.current = getVerifiedGrade(fresh.tutorOverrides)
-        // Check for a pending celebration stored by tutor
-        if (fresh.pendingCelebration) {
-          setTimeout(() => {
-            setGradeCelebration(fresh.pendingCelebration)
-            clearPendingCelebration(fresh.studentId).catch(() => {})
-          }, 1200)
-        }
-        setTimeout(() => { isSettled.current = true }, 800)
-      }
     })
     return unsub
   }, [])
-
-  // Watch verified overrides — fires when tutor verifies sections while student is live
-  useEffect(() => {
-    if (!isSettled.current) return
-    const currentGrade = getVerifiedGrade(student.tutorOverrides)
-    const prev = prevGrade.current
-    prevGrade.current = currentGrade
-    const GRADE_RANK = { null: 0, P: 1, M: 2, D: 3 }
-    if ((GRADE_RANK[currentGrade] || 0) > (GRADE_RANK[prev] || 0)) {
-      setTimeout(() => setGradeCelebration(currentGrade), 600)
-    }
-  }, [student.tutorOverrides])
-
-  // Debounced sync to Firebase
-  const scheduleSync = useCallback((data) => {
-    clearTimeout(syncTimer.current)
-    syncTimer.current = setTimeout(() => {
-      saveProgress(data.studentId, {
-        completedSections: data.completedSections,
-        xp: data.xp,
-        badges: data.badges,
-        completedTimestamps: data.completedTimestamps || {},
-        milestoneBonus: data.milestoneBonus || 0,
-      }).catch(() => {})
-    }, 1500)
-  }, [])
-
-  function showToast(msg) {
-    setToast(msg)
-    setTimeout(() => setToast(null), 3000)
-  }
-
-  // FIX 2: Block unticking tutor-verified sections
-  // FIX 3: XP always recalculated from scratch — never additive
-  function toggleSection(sectionId) {
-    setStudent(prev => {
-      const completed  = prev.completedSections || []
-      const overrides  = prev.tutorOverrides || {}
-      const timestamps = prev.completedTimestamps || {}
-      const alreadyDone = completed.includes(sectionId)
-
-      // Tutor-rejected: block toggle
-      if (overrides[sectionId] === false) {
-        showToast('⚠️ Rejected by Mr Ravindu — resubmit on Canvas first')
-        return prev
-      }
-
-      // Tutor-verified: block unticking — tutor owns this section
-      if (overrides[sectionId] === true) {
-        showToast('✓ Verified by Mr Ravindu — this section cannot be unticked')
-        return prev
-      }
-
-      // Normal toggle
-      const newCompleted = alreadyDone
-        ? completed.filter(id => id !== sectionId)
-        : [...completed, sectionId]
-
-      // Record timestamp when ticked — remove when unticked
-      const newTimestamps = { ...timestamps }
-      if (!alreadyDone) newTimestamps[sectionId] = Date.now()
-      else delete newTimestamps[sectionId]
-
-      const prevBadgeIds = prev.badges || []
-      const newBadgeIds  = checkBadges(newCompleted, 0, prev.streak || 1, overrides)
-      const earnedNow    = newBadgeIds.filter(id => !prevBadgeIds.includes(id))
-      const allBadges    = [...new Set([...prevBadgeIds, ...newBadgeIds])]
-
-      // Always recalculate from scratch — never accumulate on top of old value
-      // Lock in milestone bonus — never recalculate downward
-      const newMilestone = calcMilestoneBonus(newCompleted, prev.milestoneBonus || 0)
-      const newXP = calcXP(newCompleted, allBadges, prev.earlyBonuses || {}, newMilestone)
-
-      const updated = { ...prev, completedSections: newCompleted, xp: newXP, badges: allBadges, completedTimestamps: newTimestamps, milestoneBonus: newMilestone }
-      scheduleSync(updated)
-
-      if (!alreadyDone) {
-        const sec = SECTIONS.find(s => s.id === sectionId)
-        setTimeout(() => setPopup({ sectionId, xp: sec?.xp || 0 }), 200)
-        earnedNow.forEach((bid, i) => {
-          const badge = BADGES.find(b => b.id === bid)
-          if (badge) setTimeout(() => showToast(`🏅 +${badge.xpBonus} XP — Badge: ${badge.name}!`), 800 + i * 600)
-        })
-      } else {
-        showToast(`Unmarked — ${SECTIONS.find(s => s.id === sectionId)?.short}`)
-      }
-
-      return updated
-    })
-  }
 
   function navigateTo(newPage) {
     if (newPage === page) return
@@ -165,8 +44,7 @@ export default function StudentApp({ student, setStudent, onLogout }) {
   }
 
   const firstName = student.name?.split(' ')[0] || 'Student'
-  const xp = student.xp || 0
-  const grade = xp >= TOTAL_XP ? 'D' : xp >= PASS_MERIT_XP ? 'M' : xp >= PASS_XP ? 'P' : '—'
+  const xp        = student.xp || 0
 
   return (
     <div style={{ minHeight:'100vh', background:'var(--light)' }}>
@@ -243,14 +121,22 @@ export default function StudentApp({ student, setStudent, onLogout }) {
         </AnimatePresence>
       </nav>
 
+      {/* Read-only notice */}
+      <div style={{ background:'#EFF6FF', borderBottom:'1px solid #BFDBFE',
+        padding:'8px 20px', textAlign:'center' }}>
+        <span style={{ fontFamily:'var(--font-mono)', fontSize:11, color:'#1D4ED8', fontWeight:600 }}>
+          👁 View only — your progress is updated by Mr Ravindu
+        </span>
+      </div>
+
       {/* PAGE CONTENT */}
       <main style={{ maxWidth:900, margin:'0 auto', padding:'32px 20px 80px' }}>
         <AnimatePresence mode="wait">
           <motion.div key={page} initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }}
             exit={{ opacity:0 }} transition={{ duration:0.2 }}>
-            {page === 'home'        && <HomePage student={student} onToggleSection={toggleSection} onNavigate={navigateTo} />}
+            {page === 'home'        && <HomePage student={student} onNavigate={navigateTo} />}
             {page === 'timeline'    && <TimelinePage student={student} />}
-            {page === 'sections'    && <SectionsPage student={student} onToggleSection={toggleSection} />}
+            {page === 'sections'    && <SectionsPage student={student} />}
             {page === 'badges'      && <BadgesPage student={student} />}
             {page === 'leaderboard' && <LeaderboardPage student={student} />}
             {page === 'integrity'   && <IntegrityPage />}
@@ -267,14 +153,6 @@ export default function StudentApp({ student, setStudent, onLogout }) {
           <span>Deadline: 15 April 2026</span>
         </div>
       </footer>
-
-      <AnimatePresence>
-        {popup && <SectionPopup sectionId={popup.sectionId} xp={popup.xp} onClose={() => setPopup(null)} />}
-        {gradeCelebration && <GradeCelebration grade={gradeCelebration} onClose={() => setGradeCelebration(null)} />}
-      </AnimatePresence>
-      <AnimatePresence>
-        {toast && <Toast message={toast} />}
-      </AnimatePresence>
 
       <style>{`
         @media (max-width: 700px) {

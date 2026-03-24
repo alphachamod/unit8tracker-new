@@ -4,7 +4,8 @@ import {
   onValue, off
 } from 'firebase/database';
 import {
-  getAuth, signInAnonymously, onAuthStateChanged
+  getAuth, signInAnonymously, signInWithPopup,
+  GoogleAuthProvider, onAuthStateChanged, signOut
 } from 'firebase/auth';
 
 const firebaseConfig = {
@@ -18,13 +19,16 @@ const firebaseConfig = {
   measurementId:     import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-const app  = initializeApp(firebaseConfig);
-const db   = getDatabase(app);
-const auth = getAuth(app);
+const app      = initializeApp(firebaseConfig);
+const db       = getDatabase(app);
+const auth     = getAuth(app);
+const provider = new GoogleAuthProvider();
 
-const TUTOR_PIN = import.meta.env.VITE_TUTOR_PIN;
+const TUTOR_EMAIL = import.meta.env.VITE_TUTOR_EMAIL || 'githubtestucb@gmail.com';
 
-// ── Auth: sign in anonymously on app load ─────────────────────
+// ── Auth helpers ──────────────────────────────────────────────
+
+// Silently sign in anonymously (for students — read only)
 let _authReady = null;
 export function ensureAuth() {
   if (_authReady) return _authReady;
@@ -33,15 +37,34 @@ export function ensureAuth() {
       if (user) {
         resolve(user);
       } else {
-        signInAnonymously(auth).then(resolve).catch(reject);
+        signInAnonymously(auth).then(cred => resolve(cred.user)).catch(reject);
       }
     });
   });
   return _authReady;
 }
 
-export async function initAuth() {
-  return ensureAuth();
+// Google sign-in for tutor
+export async function signInTutor() {
+  const result = await signInWithPopup(auth, provider);
+  const email = result.user.email;
+  if (email !== TUTOR_EMAIL) {
+    await signOut(auth);
+    throw new Error('Unauthorised email. Only the course tutor can access this dashboard.');
+  }
+  return result.user;
+}
+
+export async function signOutTutor() {
+  await signOut(auth);
+}
+
+export function onAuthChange(callback) {
+  return onAuthStateChanged(auth, callback);
+}
+
+export function isTutorEmail(email) {
+  return email === TUTOR_EMAIL;
 }
 
 // ── helpers ───────────────────────────────────────────────────
@@ -62,7 +85,6 @@ export async function loginStudent(studentId, name) {
     const lastDate = data.lastStreakDate || '';
     if      (lastDate === yesterday) streak += 1;
     else if (lastDate !== today)     streak  = 1;
-
     await update(studentRef(studentId), { lastSeen: Date.now(), streak, lastStreakDate: today });
     return { ...data, studentId, streak, lastStreakDate: today };
   } else {
@@ -145,10 +167,6 @@ export async function clearPendingCelebration(studentId) {
 }
 
 // ── Tutor ops ─────────────────────────────────────────────────
-
-export function checkTutorPin(pin) {
-  return pin === TUTOR_PIN;
-}
 
 export async function getAllStudents() {
   await ensureAuth();
